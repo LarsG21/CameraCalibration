@@ -6,10 +6,20 @@ from cv2 import aruco
 import pickle
 import glob
 
-cap = cv2.VideoCapture(0)
 
-cap.set(2,1920)
-cap.set(3,1080)
+# ChAruco board variables
+CHARUCOBOARD_ROWCOUNT = 7
+CHARUCOBOARD_COLCOUNT = 5
+ARUCO_DICT = aruco.Dictionary_get(aruco.DICT_5X5_1000)
+
+CHARUCO_BOARD = aruco.CharucoBoard_create(
+        squaresX=CHARUCOBOARD_COLCOUNT,
+        squaresY=CHARUCOBOARD_ROWCOUNT,
+        squareLength=0.04,
+        markerLength=0.02,
+        dictionary=ARUCO_DICT)
+
+cap = cv2.VideoCapture(0)
 
 # termination criteria
 criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 0.001)
@@ -20,7 +30,9 @@ objp[:,:2] = np.mgrid[0:9,0:6].T.reshape(-1,2)
 
 # Arrays to store object points and image points from all the images.
 objpoints = [] # 3d point in real world space
+ids_all = [] # Aruco ids corresponding to corners discovered
 imgpoints = [] # 2d points in image plane.
+image_size = None # Determined at runtime
 
 directory1 = "C:\\Users\\Lars\\Desktop\\TestBilder\\Vorher"
 directory2 = "C:\\Users\\Lars\\Desktop\\TestBilder\\Nachher"
@@ -89,30 +101,67 @@ for img in images:
     gray = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
 
     # Find the chess board corners
-    ret, corners = cv2.findChessboardCorners(gray, (9,6),None)
+    corners, ids, _ = aruco.detectMarkers(
+        image=gray,
+        dictionary=ARUCO_DICT)
     print("FindCorners")
     # If found, add object points, image points (after refining them)
-    if ret == True:
+    if True:
         print("        Corners Found")
-        objpoints.append(objp)
-        corners2 = cv2.cornerSubPix(gray,corners,(11,11),(-1,-1),criteria)
-        imgpoints.append(corners2)
+        img = aruco.drawDetectedMarkers(
+            image=img,
+            corners=corners)
+
+        # Get charuco corners and ids from detected aruco markers
+        response, charuco_corners, charuco_ids = aruco.interpolateCornersCharuco(
+            markerCorners=corners,
+            markerIds=ids,
+            image=gray,
+            board=CHARUCO_BOARD)
+
+        if response > 20:
+            objpoints.append(charuco_corners)
+            ids_all.append(charuco_ids)
 
         # Draw and display the corners
-        img = cv2.drawChessboardCorners(img, (9,6), corners2,ret)
+
+        img = aruco.drawDetectedCornersCharuco(
+            image=img,
+            charucoCorners=charuco_corners,
+            charucoIds=charuco_ids)
         saveImagesToDirectory(counter2,img,directory2)
         counter2 += 1
         cv2.imshow('img',img)
-        cv2.waitKey(500)
+        cv2.waitKey(1000)
+        if not image_size:
+            image_size = gray.shape[::-1]
     else:
         print("         No Corners Found")
 
-ret, mtx, dist, rvecs, tvecs = cv2.calibrateCamera(objpoints, imgpoints, gray.shape[::-1],None,None)
+
+if len(images) < 1:
+    # Calibration failed because there were no images, warn the user
+    print("Calibration was unsuccessful. No images of charucoboards were found. Add images of charucoboards and use or alter the naming conventions used in this file.")
+    # Exit for failure
+    exit()
+if not image_size:
+    # Calibration failed because we didn't see any charucoboards of the PatternSize used
+    print("Calibration was unsuccessful. We couldn't detect charucoboards in any of the images supplied. Try changing the patternSize passed into Charucoboard_create(), or try different pictures of charucoboards.")
+    # Exit for failure
+    exit()
+# Make sure we were able to calibrate on at least one charucoboard by checking
+# if we ever determined the image size
+
+calibration, mtx, distCoeffs, rvecs, tvecs = aruco.calibrateCameraCharuco(
+        charucoCorners=objpoints,
+        charucoIds=ids_all,
+        board=CHARUCO_BOARD,
+        imageSize=image_size,
+        cameraMatrix=None,
+        distCoeffs=None)
 
 print('Matrix:')
 print(mtx)
-print('Dist:')
-print(dist)
 
 #Wait
 print("Take picture to undistort")
@@ -126,18 +175,8 @@ while True:
         cv2.imshow("Distorted",image)
         saveImagesToDirectory("_distorted",image, "C:\\Users\\Lars\\Desktop\\TestBilder")
         undist = undistortFunction(image,mtx,dist)
-        cv2.imshow("Undistorted",undist)
+        cv2.imshow("Undistorted",image)
         saveImagesToDirectory("_undistorted",undist, "C:\\Users\\Lars\\Desktop\\TestBilder")
         cv2.waitKey(2000)
-    cv2.waitKey(1)
-
-cv2.destroyAllWindows()
-print('LiveView')
-
-while True:
-    succsess, img = cap.read()
-    cv2.imshow("DistortedLive", img)
-    undist = undistortFunction(img, mtx, dist)
-    cv2.imshow("UndistortedLive", undist)
     cv2.waitKey(1)
 cv2.destroyAllWindows()
