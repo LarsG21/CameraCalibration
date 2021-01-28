@@ -6,4 +6,4 @@ aruco_dict.bytesList=aruco_dict.bytesList[30:,:,:]
 board = aruco.CharucoBoard_create(7, 5, 1, 0.5, aruco_dict)
 
 imboard = board.draw((2000, 2000))
-cv2.imwrite("chessboard2.png", imboard)
+cv2.imwrite("chessboard3.png", imboard)

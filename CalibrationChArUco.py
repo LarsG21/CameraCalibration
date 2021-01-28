@@ -24,9 +24,6 @@ cap = cv2.VideoCapture(0)
 # termination criteria
 criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 0.001)
 
-# prepare object points, like (0,0,0), (1,0,0), (2,0,0) ....,(6,5,0)
-objp = np.zeros((6*9,3), np.float32)
-objp[:,:2] = np.mgrid[0:9,0:6].T.reshape(-1,2)
 
 # Arrays to store object points and image points from all the images.
 objpoints = [] # 3d point in real world space
@@ -72,14 +69,42 @@ def undistortFunction(img,mtx,dist):
     cv2.imwrite('calibresult.png',dst)
     return dst
 
+def calibrate_camera(allCorners,allIds,imsize):
+    """
+    Calibrates the camera using the dected corners.
+    """
+    print("CAMERA CALIBRATION")
+
+    cameraMatrixInit = np.array([[ 1000.,    0., imsize[0]/2.],
+                                 [    0., 1000., imsize[1]/2.],
+                                 [    0.,    0.,           1.]])
+
+    distCoeffsInit = np.zeros((5,1))
+    flags = (cv2.CALIB_USE_INTRINSIC_GUESS + cv2.CALIB_RATIONAL_MODEL + cv2.CALIB_FIX_ASPECT_RATIO)
+    #flags = (cv2.CALIB_RATIONAL_MODEL)
+    (ret, camera_matrix, distortion_coefficients0,
+     rotation_vectors, translation_vectors,
+     stdDeviationsIntrinsics, stdDeviationsExtrinsics,
+     perViewErrors) = cv2.aruco.calibrateCameraCharucoExtended(
+                      charucoCorners=allCorners,
+                      charucoIds=allIds,
+                      board=CHARUCO_BOARD,
+                      imageSize=imsize,
+                      cameraMatrix=cameraMatrixInit,
+                      distCoeffs=distCoeffsInit,
+                      flags=flags,
+                      criteria=(cv2.TERM_CRITERIA_EPS & cv2.TERM_CRITERIA_COUNT, 10000, 1e-9))
+
+    return ret, camera_matrix, distortion_coefficients0, rotation_vectors, translation_vectors
+
 #reads in Calib Images
 while True:
     succsess, img = cap.read()
-    cv2.imshow("Image", img)
+    cv2.imshow("Calib_ChArUco", img)
 
     if cv2.waitKey(1) & 0xff == ord('x'):
         cv2.putText(img, "Captured", (5, 50), cv2.FONT_HERSHEY_COMPLEX, 0.7, (0, 255, 0))
-        cv2.imshow("Image", img)
+        cv2.imshow("Calib_ChArUco", img)
         cv2.waitKey(500)
         images.append(img)                                  #In Array ablegen
         saveImagesToDirectory(counter,img,directory1)
@@ -87,13 +112,13 @@ while True:
         print("Captured")
     if cv2.waitKey(1) & 0xff == ord('q'):
         break
-cv2.destroyWindow("Image")
+cv2.destroyWindow("Calib_ChArUco")
 
 #shows Images
 for frame in images:            #Show Images
-    cv2.imshow("Test",frame)
+    cv2.imshow("All_Captured",frame)
     cv2.waitKey(200)
-cv2.destroyWindow("Test")
+cv2.destroyWindow("All_Captured")
 
 #findCorners
 counter2 = 0
@@ -101,10 +126,10 @@ for img in images:
     gray = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
 
     # Find the chess board corners
-    corners, ids, _ = aruco.detectMarkers(
+    corners, ids, rejectedImgPoints = aruco.detectMarkers(
         image=gray,
         dictionary=ARUCO_DICT)
-    print("FindCorners")
+    print("Rejected Corners  ",len(rejectedImgPoints))
     # If found, add object points, image points (after refining them)
     if True:
         print("        Corners Found")
@@ -120,9 +145,13 @@ for img in images:
             board=CHARUCO_BOARD)
 
         if response > 20:
+            print('response>20')
             objpoints.append(charuco_corners)
             ids_all.append(charuco_ids)
-
+        if charuco_corners is None:
+            print('Corners = NONE')
+        if charuco_ids is None:
+            print('IDs = NONE')
         # Draw and display the corners
 
         img = aruco.drawDetectedCornersCharuco(
@@ -132,7 +161,7 @@ for img in images:
         saveImagesToDirectory(counter2,img,directory2)
         counter2 += 1
         cv2.imshow('img',img)
-        cv2.waitKey(1000)
+        cv2.waitKey(2000)
         if not image_size:
             image_size = gray.shape[::-1]
     else:
@@ -152,6 +181,8 @@ if not image_size:
 # Make sure we were able to calibrate on at least one charucoboard by checking
 # if we ever determined the image size
 
+
+
 calibration, mtx, distCoeffs, rvecs, tvecs = aruco.calibrateCameraCharuco(
         charucoCorners=objpoints,
         charucoIds=ids_all,
@@ -160,8 +191,12 @@ calibration, mtx, distCoeffs, rvecs, tvecs = aruco.calibrateCameraCharuco(
         cameraMatrix=None,
         distCoeffs=None)
 
+
+#ret, mtx, distCoeffs, rotation_vectors, translation_vectors = calibrate_camera(allCorners=corners,allIds=ids_all,imsize=image_size)
 print('Matrix:')
 print(mtx)
+print('Dist:')
+print(distCoeffs)
 
 #Wait
 print("Take picture to undistort")
@@ -179,4 +214,15 @@ while True:
         saveImagesToDirectory("_undistorted",undist, "C:\\Users\\Lars\\Desktop\\TestBilder")
         cv2.waitKey(2000)
     cv2.waitKey(1)
+
+cv2.destroyAllWindows()
+print('LiveView')
+
+while True:
+    succsess, img = cap.read()
+    cv2.imshow("DistortedLive", img)
+    undist = undistortFunction(img, mtx, dist)
+    cv2.imshow("UndistortedLive", undist)
+    cv2.waitKey(1)
+
 cv2.destroyAllWindows()
