@@ -11,13 +11,17 @@ cap = cv2.VideoCapture(0)
 cap.set(2,1920)
 cap.set(3,1080)
 
+rows = 6
+columns = 9
+saveImages = False
+
 # termination criteria for Subpixel Optimization
 criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 0.001)
 
 # prepare object points, like (0,0,0), (1,0,0), (2,0,0) ....,(6,5,0)
 squareSize = 30#mm      Beinflusst aber in keiner weise die Matrix
-objp = np.zeros((6*9,3), np.float32)
-objp[:,:2] = np.mgrid[0:9,0:6].T.reshape(-1,2)*squareSize
+objp = np.zeros((rows*columns,3), np.float32)
+objp[:,:2] = np.mgrid[0:columns,0:rows].T.reshape(-1,2)*squareSize
 
 # Arrays to store object points and image points from all the images.
 
@@ -55,7 +59,8 @@ for i in range(runs):
             cv2.imshow("Image", img)
             cv2.waitKey(500)
             images.append(img)                                  #In Array ablegen
-            utils.saveImagesToDirectory(counter,img,directory1)
+            if saveImages:
+                utils.saveImagesToDirectory(counter,img,directory1)
             counter += 1
             print("Captured")
         if cv2.waitKey(1) & 0xff == ord('q'):
@@ -74,7 +79,7 @@ for i in range(runs):
         gray = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
 
         # Find the chess board corners
-        ret, corners = cv2.findChessboardCorners(gray, (9,6),None)
+        ret, corners = cv2.findChessboardCorners(gray, (columns,rows),None)
         print("FindCorners")
         # If found, add object points, image points (after refining them)
         if ret == True:
@@ -84,8 +89,9 @@ for i in range(runs):
             imgpoints.append(corners2)
 
             # Draw and display the corners
-            img = cv2.drawChessboardCorners(img, (9,6), corners2,ret)
-            utils.saveImagesToDirectory(counter2,img,directory2)
+            img = cv2.drawChessboardCorners(img, (columns,rows), corners2,ret)
+            if saveImages:
+                utils.saveImagesToDirectory(counter2,img,directory2)
             counter2 += 1
             cv2.imshow('img',img)
             cv2.waitKey(200)
@@ -189,10 +195,12 @@ while True:
     if cv2.waitKey(1) & 0xff == ord('x'):
         succsess,image = cap.read()
         cv2.imshow("Distorted",image)
-        utils.saveImagesToDirectory("_distorted",image, "C:\\Users\\Lars\\Desktop\\TestBilder")
+        if saveImages:
+            utils.saveImagesToDirectory("_distorted",image, "C:\\Users\\Lars\\Desktop\\TestBilder")
         undist = utils.undistortFunction(image,meanMTX,meanDIST)
         cv2.imshow("Undistorted",undist)
-        utils.saveImagesToDirectory("_undistorted",undist, "C:\\Users\\Lars\\Desktop\\TestBilder")
+        if saveImages:
+            utils.saveImagesToDirectory("_undistorted",undist, "C:\\Users\\Lars\\Desktop\\TestBilder")
         cv2.waitKey(2000)
     cv2.waitKey(1)
 

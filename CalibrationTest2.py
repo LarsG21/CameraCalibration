@@ -13,13 +13,16 @@ cap = cv2.VideoCapture(0)
 cap.set(2, 1920)
 cap.set(3, 1080)
 
+rows = 6
+columns = 9
+
 # termination criteria for Subpixel Optimization
 criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 0.001)
 
 # prepare object points, like (0,0,0), (1,0,0), (2,0,0) ....,(6,5,0)
 squareSize = 30  # mm      Beinflusst aber in keiner weise die Matrix
-objp = np.zeros((17 * 28, 3), np.float32)
-objp[:, :2] = np.mgrid[0:28, 0:17].T.reshape(-1, 2) * squareSize
+objp = np.zeros((rows * columns, 3), np.float32)
+objp[:, :2] = np.mgrid[0:columns, 0:rows].T.reshape(-1, 2) * squareSize
 print(objp)
 
 # Arrays to store object points and image points from all the images.
@@ -68,7 +71,7 @@ for img in images:
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
     # Find the chess board corners
-    ret, corners = cv2.findChessboardCorners(gray, (28, 17), None)
+    ret, corners = cv2.findChessboardCorners(gray, (columns, rows), None)
     print("FindCorners")
     # If found, add object points, image points (after refining them)
     if ret == True:
@@ -78,7 +81,7 @@ for img in images:
         imgpoints.append(corners2)
 
         # Draw and display the corners
-        img = cv2.drawChessboardCorners(img, (28, 17), corners2, ret)
+        img = cv2.drawChessboardCorners(img, (columns, rows), corners2, ret)
         utils.saveImagesToDirectory(counter2, img, directory2)
         counter2 += 1
         cv2.imshow('img', img)
