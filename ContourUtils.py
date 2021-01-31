@@ -5,7 +5,7 @@ def midpoint(ptA, ptB):
 	return ((ptA[0,0] + ptB[0,0]) * 0.5, (ptA[0,1] + ptB[0,1]) * 0.5)
 
 
-def getContours(img, cThr=[100, 100], showCanny=False, minArea=100, filter=0, draw=False):
+def getContours(img, cThr=[100, 100], showCanny=False, minArea=100,epsilon = 0.01, filter=0, draw=False):
     imgGray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     imgBlur = cv2.GaussianBlur(imgGray, (3, 3),1)
     imgBlur2 = cv2.GaussianBlur(imgBlur, (3, 3), 1)
@@ -14,14 +14,14 @@ def getContours(img, cThr=[100, 100], showCanny=False, minArea=100, filter=0, dr
     imgDial = cv2.dilate(imgCanny, kernel, iterations=3)
     imgThre = cv2.erode(imgDial, kernel, iterations=2)
     if showCanny: cv2.imshow('Canny', imgCanny)
-    contours, hiearchy = cv2.findContours(imgThre, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    contours, hiearchy = cv2.findContours(imgThre, cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)
     finalCountours = []
     for i in contours:
         area = cv2.contourArea(i)
         if area > minArea:
             #print('minAreaFilled')
             peri = cv2.arcLength(i, True)
-            approx = cv2.approxPolyDP(i, 0.01 * peri, True)
+            approx = cv2.approxPolyDP(i, epsilon * peri, True)
             bbox = cv2.boundingRect(approx)
             if filter > 0:
                 if len(approx) == filter:
@@ -41,7 +41,7 @@ def reorder(myPoints):
         myPoints = myPoints.reshape(4,1,2)
         myPointsNew = np.zeros_like(myPoints)
         myPoints = myPoints.reshape((4,2))
-        print("RESHAPED_MTX",myPointsNew)
+        #print("RESHAPED_MTX",myPointsNew)
         add = myPoints.sum(1)
         myPointsNew[0] = myPoints[np.argmin(add)]
         myPointsNew[3] = myPoints[np.argmax(add)]

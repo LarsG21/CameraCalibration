@@ -12,6 +12,18 @@ def saveImagesToDirectory(counter,img,directory):
     print(counter)
 
 
+
+def saveFileToDirectory(filename,filetype,file,directory):
+    if os.path.exists(directory):
+        os.chdir(directory)
+    else:
+        print("ERROR: Directory not Found")
+    name = filename + '.' + filetype
+    cv2.imwrite(name, file)  # in Ordner Speichern
+    print("Saved",name)
+
+
+
 def undistortFunction(img,mtx,dist):
     h, w = img.shape[:2]
     newcameramtx, roi = cv2.getOptimalNewCameraMatrix(mtx, dist, (w, h), 1, (w, h))
