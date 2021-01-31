@@ -89,6 +89,7 @@ distZero = np.array([0, 0, 0, 0, 0], dtype=float)
 
 showConts = True
 pixelsPerMetric = 1
+pixelsPerMetricUndist = 1
 
 while True:
     timer = cv2.getTickCount()          #FPS Counter
@@ -102,60 +103,42 @@ while True:
                 cv2.polylines(undist, [obj[2]], True, (0, 255, 0), 1)        #Approxes Contours with Polylines
                 #print("Number of PolyPoints",str(obj[0]))
                 #print(obj[2])
-                cv2.waitKey(100)
-                for i in range(len(obj[2])):
-                    cv2.circle(undist, (int(obj[2][i][0,0]),int(obj[2][i][0,1])), 1, (255, 255, 0), 2)
-                    d = dist.euclidean((obj[2][i],obj[2][i]),(obj[2][i+1],obj[2][i+1]))
-                    if i == len(obj[2]):
-                        d = dist.euclidean((obj[2][i],obj[2][i]),(obj[2][0],obj[2][0]))
-                    distance = d / pixelsPerMetric
-                    (midX, midY) = ContourUtils.midpoint(obj[2][i], obj[2][i+1])
+                for i in range(len(obj[2])):            #for every contour in an image
+                    cv2.circle(undist, (int(obj[2][i][0,0]),int(obj[2][i][0,1])), 1, (255, 255, 0), 2)      #draw approx Points
+                    if i == len(obj[2])-1:  #spacial Case Distance between Last and first point
+                        d = dist.euclidean((obj[2][i][0, 0], obj[2][i][0, 1]), (obj[2][0][0, 0], obj[2][0][0, 1]))  #distace between points
+                        (midX, midY) = ContourUtils.midpoint(obj[2][i], obj[2][0])
+                    else:
+                        d = dist.euclidean((obj[2][i][0,0],obj[2][i][0,1]),(obj[2][i+1][0,0],obj[2][i+1][0,1]))
+                        (midX, midY) = ContourUtils.midpoint(obj[2][i], obj[2][i + 1])
+                    distance = d / pixelsPerMetricUndist
                     cv2.putText(undist, "{:.1f}".format(distance),(int(midX ), int(midY)), cv2.FONT_HERSHEY_SIMPLEX,0.45, (255, 0, 0), 1)
 
     corners, ids, rejectedImgPoints = aruco.detectMarkers(img, aruco_dict)           #Detects AruCo Marker in Image
-    #print("Corners",corners)
+    cornersUndist, idsUndist, rejectedImgPointsUndist = aruco.detectMarkers(undist, aruco_dict)  # Detects AruCo Marker in Image
     corners = np.array(corners)
-    reorderd = ContourUtils.reorder(corners)                                            #Reorders Corners TL,TR,BL,BR
-    #print("reorderd",reorderd)
-    if reorderd is not None:
-        #print(reorderd[3])
-        #print("SHAPE",reorderd[3].shape)
-        (tltrX, tltrY) = ContourUtils.midpoint(reorderd[0], reorderd[1]) #top left,top right
-        (blbrX, blbrY) = ContourUtils.midpoint(reorderd[2], reorderd[3]) #bottom left, botto right
-        (tlblX, tlblY) = ContourUtils.midpoint(reorderd[0], reorderd[2])
-        (trbrX, trbrY) = ContourUtils.midpoint(reorderd[1], reorderd[3])
-        cv2.circle(img, (int(tltrX), int(tltrY)), 1, (255, 255, 0), 2)
-        cv2.circle(img, (int(blbrX), int(blbrY)), 1, (255, 255, 0), 2)
-        cv2.circle(img, (int(tlblX), int(tlblY)), 1, (255, 255, 0), 2)
-        cv2.circle(img, (int(trbrX), int(trbrY)), 1, (255, 255, 0), 2)
-        cv2.line(img, (int(tltrX), int(tltrY)), (int(blbrX), int(blbrY)),              #Draws Lines in Center
-                 (255, 0, 255), 2)
-        cv2.line(img, (int(tlblX), int(tlblY)), (int(trbrX), int(trbrY)),
-                 (255, 0, 255), 2)
+    reorderd = ContourUtils.reorder(corners)             #Reorders Corners TL,TR,BL,BR
 
-        dY = dist.euclidean((tltrX, tltrY), (blbrX, blbrY))
-        dX = dist.euclidean((tlblX, tlblY), (trbrX, trbrY))
-        pixelsPerMetric = (dX+dY)/2*(1/ArucoSize)                     #Calculates Pixels/Lenght Parameter
-        dimA = dY / pixelsPerMetric
-        dimB = dX / pixelsPerMetric             #Dimention of Marker
-        cv2.putText(img, "{:.1f}mm".format(dimA),
-                    (int(tltrX - 15), int(tltrY - 10)), cv2.FONT_HERSHEY_SIMPLEX,
-                    0.65, (0, 0, 255), 2)
-        cv2.putText(img, "{:.1f}mm".format(dimB),
-                    (int(trbrX + 10), int(trbrY)), cv2.FONT_HERSHEY_SIMPLEX,
-                    0.65, (0, 0, 255), 2)
+    cornersUndist = np.array(cornersUndist)
+    reorderdUndist = ContourUtils.reorder(cornersUndist)  # Reorders Corners TL,TR,BL,BR
+    if reorderd is not None and reorderdUndist is not None:
+        pixelsPerMetric = utils.calculatePixelsPerMetric(img, reorderd, ArucoSize)  #Ausgelagert in Funktion
+        pixelsPerMetricUndist = utils.calculatePixelsPerMetric(undist, reorderdUndist, ArucoSize)  #Ausgelagert in Funktion
+        print(pixelsPerMetric)
+        print(pixelsPerMetricUndist)
         cv2.putText(img, "Pixels per mm", (5, 25), cv2.FONT_HERSHEY_COMPLEX, 0.7,(0, 0, 255))  # Draws Pixel/Lengh variable on Image'
         cv2.putText(img, str(pixelsPerMetric),(5, 50), cv2.FONT_HERSHEY_COMPLEX, 0.7, (0, 0, 255)) #Draws Pixel/Lengh variable on Image'
+
 
     aruco.drawDetectedMarkers(img, corners)      #Drwas Box around Marker
     rvec, tvec, _ = aruco.estimatePoseSingleMarkers(corners, ArucoSize, meanMTX, meanDIST)  # größße des marker in m
     # rvecZeroDist, tvecZeroDist, _ = aruco.estimatePoseSingleMarkers(corners, 0.053, mtx, distZero)  # größße des marker in m
     if rvec is not None and tvec is not None:
-        aruco.drawAxis(img, meanMTX, meanDIST, rvec, tvec, 0.05)     #Drwas AruCo Axis
+        aruco.drawAxis(img, meanMTX, meanDIST, rvec, tvec, 50)     #Drwas AruCo Axis
         cv2.putText(img, "%.1f cm -- %.0f deg" % ((tvec[0][0][2] /10), (rvec[0][0][2] / math.pi * 180)), (0, 230),
                     cv2.FONT_HERSHEY_SIMPLEX, 0.7, (244, 244, 244))
-        #print(rvec)
-        #print(tvec)
+        print(rvec)
+        print(tvec)
     else:
         print("No Marker found")
     fps = cv2.getTickFrequency() / (cv2.getTickCount() - timer)
