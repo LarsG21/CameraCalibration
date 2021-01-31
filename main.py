@@ -88,6 +88,7 @@ aruco_dict = aruco.Dictionary_get(aruco.DICT_6X6_250)
 distZero = np.array([0, 0, 0, 0, 0], dtype=float)
 
 showConts = True
+putText = True
 pixelsPerMetric = 1
 pixelsPerMetricUndist = 1
 
@@ -112,24 +113,25 @@ while True:
                         d = dist.euclidean((obj[2][i][0,0],obj[2][i][0,1]),(obj[2][i+1][0,0],obj[2][i+1][0,1]))
                         (midX, midY) = ContourUtils.midpoint(obj[2][i], obj[2][i + 1])
                     distance = d / pixelsPerMetricUndist
-                    cv2.putText(undist, "{:.1f}".format(distance),(int(midX ), int(midY)), cv2.FONT_HERSHEY_SIMPLEX,0.45, (255, 0, 0), 1)
+                    if putText:
+                        cv2.putText(undist, "{:.1f}".format(distance),(int(midX ), int(midY)), cv2.FONT_HERSHEY_SIMPLEX,0.45, (0, 0, 255), 1)
 
     corners, ids, rejectedImgPoints = aruco.detectMarkers(img, aruco_dict)           #Detects AruCo Marker in Image
     cornersUndist, idsUndist, rejectedImgPointsUndist = aruco.detectMarkers(undist, aruco_dict)  # Detects AruCo Marker in Image
     corners = np.array(corners)
     reorderd = ContourUtils.reorder(corners)             #Reorders Corners TL,TR,BL,BR
-
     cornersUndist = np.array(cornersUndist)
     reorderdUndist = ContourUtils.reorder(cornersUndist)  # Reorders Corners TL,TR,BL,BR
+
     if reorderd is not None and reorderdUndist is not None:
-        pixelsPerMetric = utils.calculatePixelsPerMetric(img, reorderd, ArucoSize)  #Ausgelagert in Funktion
-        pixelsPerMetricUndist = utils.calculatePixelsPerMetric(undist, reorderdUndist, ArucoSize)  #Ausgelagert in Funktion
-        print(pixelsPerMetric)
-        print(pixelsPerMetricUndist)
-        cv2.putText(img, "Pixels per mm", (5, 25), cv2.FONT_HERSHEY_COMPLEX, 0.7,(0, 0, 255))  # Draws Pixel/Lengh variable on Image'
-        cv2.putText(img, str(pixelsPerMetric),(5, 50), cv2.FONT_HERSHEY_COMPLEX, 0.7, (0, 0, 255)) #Draws Pixel/Lengh variable on Image'
-
-
+        pixelsPerMetric = utils.calculatePixelsPerMetric(img, reorderd, ArucoSize)  #Calculates Pixels/Metric and Drwas
+        pixelsPerMetricUndist = utils.calculatePixelsPerMetric(undist, reorderdUndist, ArucoSize,)  #Calculates Pixels/Metric
+        #cv2.putText(img, "Pixels per mm", (5, 50), cv2.FONT_HERSHEY_COMPLEX, 0.7,(0, 0, 255))  # Draws Pixel/Lengh variable on Image'
+        #cv2.putText(img, str(pixelsPerMetric),(5, 75), cv2.FONT_HERSHEY_COMPLEX, 0.7, (0, 0, 255)) #Draws Pixel/Lengh variable on Image'
+        cv2.putText(undist, "Pixels per mm", (5, 25), cv2.FONT_HERSHEY_COMPLEX, 0.7,(0, 0, 255))  # Draws Pixel/Lengh variable on Image'
+        cv2.putText(undist, str(pixelsPerMetricUndist), (5, 50), cv2.FONT_HERSHEY_COMPLEX, 0.7,(0, 0, 255))  # Draws Pixel/Lengh variable on Image'
+    else:
+        cv2.putText(undist, "AruCo not correctly Detected!", (5, 25), cv2.FONT_HERSHEY_COMPLEX, 0.7, (0, 0, 255))
     aruco.drawDetectedMarkers(img, corners)      #Drwas Box around Marker
     rvec, tvec, _ = aruco.estimatePoseSingleMarkers(corners, ArucoSize, meanMTX, meanDIST)  # größße des marker in m
     # rvecZeroDist, tvecZeroDist, _ = aruco.estimatePoseSingleMarkers(corners, 0.053, mtx, distZero)  # größße des marker in m
@@ -137,12 +139,14 @@ while True:
         aruco.drawAxis(img, meanMTX, meanDIST, rvec, tvec, 50)     #Drwas AruCo Axis
         cv2.putText(img, "%.1f cm -- %.0f deg" % ((tvec[0][0][2] /10), (rvec[0][0][2] / math.pi * 180)), (0, 230),
                     cv2.FONT_HERSHEY_SIMPLEX, 0.7, (244, 244, 244))
+        if abs(rvec[0][0][2] / math.pi * 180) > 3:
+            cv2.putText(img,"Angle should be below 3 degrees!",(0, 260), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255))
         print(rvec)
         print(tvec)
     else:
         print("No Marker found")
     fps = cv2.getTickFrequency() / (cv2.getTickCount() - timer)
-    cv2.putText(undist, str(int(fps)), (5, 25), cv2.FONT_HERSHEY_COMPLEX, 0.7, (0, 255, 0))
+    cv2.putText(undist, str(int(fps)), (5, undist.shape[0]-25), cv2.FONT_HERSHEY_COMPLEX, 0.7, (0, 255, 0))
     cv2.imshow("UndistortedLive", undist)
     cv2.imshow("DistortedLive", img)
 
