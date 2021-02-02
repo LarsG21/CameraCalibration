@@ -43,7 +43,6 @@ cv2.createTrackbar("Number of Gauss Filters","Edge Detection Settings", 2, 10, e
 cv2.createTrackbar("Minimum Area of Contours","Edge Detection Settings", 800, 50000, empty)
 cv2.createTrackbar("Epsilon (Resolution of Poly Approximation)","Edge Detection Settings", 1, 100, empty)
 cv2.createTrackbar("Show Filters","Edge Detection Settings", 0, 1, empty)
-cv2.createButton("ShowFilters",gui.on_showFilters)
 
 ######################################################################
 
