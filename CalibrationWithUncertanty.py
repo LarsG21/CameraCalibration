@@ -15,6 +15,7 @@ def calibrateCamera(cap,rows,columns,squareSize,objp,runs,saveImages = False):
     directory1 = "C:\\Users\\Lars\\Desktop\\TestBilder\\Vorher"
     directory2 = "C:\\Users\\Lars\\Desktop\\TestBilder\\Nachher"
 
+    open('repErrors.txt', 'w').close()
 
     print(os.getcwd())
     print('Path Exists ?')
@@ -29,8 +30,8 @@ def calibrateCamera(cap,rows,columns,squareSize,objp,runs,saveImages = False):
     allRepErr = []
 
 
-    for i in range(runs):
-        print('Run ', str(i+1), ' of 5')
+    for r in range(runs):
+        print('Run ', str(r+1), ' of 5')
         objpoints = []  # 3d point in real world space
         imgpoints = []  # 2d points in image plane.
 
@@ -40,10 +41,17 @@ def calibrateCamera(cap,rows,columns,squareSize,objp,runs,saveImages = False):
         #reads in Calib Images
         while True:
             succsess, img = cap.read()
+            cv2.putText(img, "Press x to take an image of Calicration Pattern. Take at least 10 images from different angles", (5, 20), cv2.FONT_HERSHEY_COMPLEX, 0.45, (0, 0, 255))
+
+            cv2.putText(img, "Run: {:.1f}/5".format(r+1), (210, 40), cv2.FONT_HERSHEY_COMPLEX, 0.45, (0, 0, 255))
+            if counter >9:
+                cv2.putText(img, "Press q for next step".format(counter), (5, 40), cv2.FONT_HERSHEY_COMPLEX, 0.45,(0, 0, 255))
+            else:
+                cv2.putText(img, "Captured: {:.1f}/10".format(counter), (5, 40), cv2.FONT_HERSHEY_COMPLEX, 0.45,(0, 0, 255))
             cv2.imshow("Image", img)
 
             if cv2.waitKey(1) & 0xff == ord('x'):
-                cv2.putText(img, "Captured", (5, 50), cv2.FONT_HERSHEY_COMPLEX, 0.7, (0, 255, 0))
+                cv2.putText(img, "Captured", (5, 70), cv2.FONT_HERSHEY_COMPLEX, 0.7, (0, 255, 0))
                 cv2.imshow("Image", img)
                 cv2.waitKey(500)
                 images.append(img)                                  #In Array ablegen
@@ -53,12 +61,14 @@ def calibrateCamera(cap,rows,columns,squareSize,objp,runs,saveImages = False):
                 print("Captured")
             if cv2.waitKey(1) & 0xff == ord('q'):
                 break
-        cv2.destroyWindow("Image")
+
+        cv2.imshow("Image", img)
+        #cv2.destroyWindow("Image")
 
         #shows Images
         for frame in images:            #Show Images
             cv2.imshow("Test",frame)
-            cv2.waitKey(100)
+            cv2.waitKey(50)
         cv2.destroyWindow("Test")
 
         #findCorners
@@ -85,8 +95,12 @@ def calibrateCamera(cap,rows,columns,squareSize,objp,runs,saveImages = False):
                 cv2.waitKey(200)
             else:
                 print("         No Corners Found")
-        print('Found Corners in ' +str(counter2) + ' of ' + str(len(images))+ ' images')
+        message = 'Found Corners in ' +str(counter2) + ' of ' + str(len(images))+ ' images'
         print('Detect at least 10 for optimal results')
+        print(message)
+        cv2.putText(img, message, (50, 250), cv2.FONT_HERSHEY_COMPLEX, 1.2, (0, 0, 255),thickness=2)
+        cv2.imshow('img', img)
+        cv2.waitKey(5000)
         cv2.destroyWindow("img")
         ret, mtx, dist, rvecs, tvecs = cv2.calibrateCamera(objpoints, imgpoints, gray.shape[::-1],None,None)
         print('Matrix:')
@@ -106,7 +120,8 @@ def calibrateCamera(cap,rows,columns,squareSize,objp,runs,saveImages = False):
                 # print(imgpoints[i])
                 # print('Nach Reproduktion')
                 # print(imgpoints2)
-        print("Mean error between Ideal Chessboard Corners and Image Corners: {}".format(meanErrorZeroDist / len(objpoints)))
+        meanErrorZeroDist = meanErrorZeroDist / len(objpoints)
+        print("Mean error between Ideal Chessboard Corners and Image Corners: {}".format(meanErrorZeroDist))
         for i in range(len(objpoints)):
             imgpoints2, _ = cv2.projectPoints(objpoints[i], rvecs[i], tvecs[i], mtx, dist)
             error = cv2.norm(imgpoints[i], imgpoints2, cv2.NORM_L2) / len(imgpoints2)
@@ -117,9 +132,19 @@ def calibrateCamera(cap,rows,columns,squareSize,objp,runs,saveImages = False):
                 # print(imgpoints[i])
                 # print('Nach Reproduktion')
                 # print(imgpoints2)
-        print("Mean error between projected Objecktpoints using distortion parameters to Points in real Image: {}".format(mean_error / len(objpoints)))
+        mean_error = mean_error / len(objpoints)
+        print("Mean error between projected Objecktpoints using distortion parameters to Points in real Image: {}".format(mean_error))
 
+        with open('repErrors.txt', 'a') as file:
 
+            books = ["Mean Error before calib in Run {}:\n".format(r),
+                     str(meanErrorZeroDist),
+                     "Mean Error after calib in Run {}:\n".format(r),
+                     str(mean_error),
+                     ]
+
+            file.writelines("% s\n" % data for data in books)
+            file.close()
         allMTX.append(mtx)
         allDist.append(dist)
 
@@ -174,4 +199,21 @@ def calibrateCamera(cap,rows,columns,squareSize,objp,runs,saveImages = False):
     print('P2: ', str(meanP2), ' +/- ', uncertantyDIST[0,3] )
     print('K3: ', str(meanK3), ' +/- ', uncertantyDIST[0,4] )
     #Wait
+
+    with open('repErrors.txt', 'a') as file:
+
+        books = ["MeanMTX",
+                 str(meanMTX),
+                 "uncertaintyMTX",
+                 str(uncertantyMTX),
+                 "MeanDist",
+                 str(meanDIST),
+                 "uncertaintyDist",
+                 str(uncertantyDIST)
+                 ]
+
+        file.writelines("% s\n" % data for data in books)
+        file.close()
+
+
     return meanMTX,meanDIST,uncertantyMTX,uncertantyDIST

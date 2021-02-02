@@ -66,3 +66,23 @@ def calculatePixelsPerMetric(img,reorderd,ArucoSize,draw = True):
                     (int(trbrX + 10), int(trbrY)), cv2.FONT_HERSHEY_SIMPLEX,
                     0.65, (0, 0, 255), 2)
     return pixelsPerMetric
+
+def undistortPicture(cap,saveImages,meanMTX,meanDIST):
+    print("Take picture to undistort")
+    while True:
+        succsess, img = cap.read()
+        cv2.imshow("Calib_Chess", img)
+        if cv2.waitKey(1) & 0xff == ord('q'):
+            break
+        if cv2.waitKey(1) & 0xff == ord('x'):
+            succsess,image = cap.read()
+            cv2.imshow("Distorted",image)
+            if saveImages:
+                saveImagesToDirectory("_distorted",image, "C:\\Users\\Lars\\Desktop\\TestBilder")
+            undist = undistortFunction(image,meanMTX,meanDIST)
+            cv2.imshow("Undistorted",undist)
+            if saveImages:
+                saveImagesToDirectory("_undistorted",undist, "C:\\Users\\Lars\\Desktop\\TestBilder")
+            cv2.waitKey(2000)
+        cv2.waitKey(1)
+

@@ -7,6 +7,7 @@ import math
 import ContourUtils
 import CalibrationWithUncertanty
 from scipy.spatial import distance as dist
+import gui
 
 import pickle
 import glob
@@ -26,6 +27,26 @@ saveImages = False
 undistiortTestAfterCalib = False
 saveParametersPickle = False
 loadSavedParameters = True
+
+#OpenCV Window GUI###############################
+root_wind = "Object measurement"
+cv2.namedWindow(root_wind)
+
+def empty(a):
+    pass
+slider = "Edge Detection Settings"
+cv2.namedWindow(slider)
+cv2.resizeWindow("Edge Detection Settings", 640, 240)
+cv2.createTrackbar("Canny Threshold Low","Edge Detection Settings", 120, 255, empty)
+cv2.createTrackbar("Canny Threshold High","Edge Detection Settings", 160, 255, empty)
+cv2.createTrackbar("Number of Gauss Filters","Edge Detection Settings", 2, 10, empty)
+cv2.createTrackbar("Minimum Area of Contours","Edge Detection Settings", 800, 50000, empty)
+cv2.createTrackbar("Epsilon (Resolution of Poly Approximation)","Edge Detection Settings", 1, 100, empty)
+cv2.createTrackbar("Show Filters","Edge Detection Settings", 0, 1, empty)
+cv2.createButton("ShowFilters",gui.on_showFilters)
+
+######################################################################
+
 
 # termination criteria for Subpixel Optimization
 criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 0.001)
@@ -62,25 +83,8 @@ if loadSavedParameters:
     print(meanDIST)
 
 if undistiortTestAfterCalib:
-    print("Take picture to undistort")
-    while True:
-        succsess, img = cap.read()
-        cv2.imshow("Calib_Chess", img)
-        if cv2.waitKey(1) & 0xff == ord('q'):
-            break
-        if cv2.waitKey(1) & 0xff == ord('x'):
-            succsess,image = cap.read()
-            cv2.imshow("Distorted",image)
-            if saveImages:
-                utils.saveImagesToDirectory("_distorted",image, "C:\\Users\\Lars\\Desktop\\TestBilder")
-            undist = utils.undistortFunction(image,meanMTX,meanDIST)
-            cv2.imshow("Undistorted",undist)
-            if saveImages:
-                utils.saveImagesToDirectory("_undistorted",undist, "C:\\Users\\Lars\\Desktop\\TestBilder")
-            cv2.waitKey(2000)
-        cv2.waitKey(1)
-
-cv2.destroyAllWindows()
+    utils.undistortPicture(cap, saveImages, meanMTX, meanDIST)
+    cv2.destroyAllWindows()
 print('LiveView')
 
 aruco_dict = aruco.Dictionary_get(aruco.DICT_6X6_250)
@@ -98,7 +102,23 @@ while True:
     undist = utils.undistortFunction(img, meanMTX, meanDIST)    #Undistort Image
     cv2.waitKey(1)
     if showConts:
-        imgContours, conts = ContourUtils.getContours(undist, cThr=(160, 200), minArea=800, epsilon=0.1, draw=False, showCanny=False)        #gets Contours from Image
+
+        cannyLow = cv2.getTrackbarPos("Canny Threshold Low", "Edge Detection Settings")
+        cannyHigh = cv2.getTrackbarPos("Canny Threshold High","Edge Detection Settings")
+        noGauss = cv2.getTrackbarPos("Number of Gauss Filters","Edge Detection Settings")
+        minArea = cv2.getTrackbarPos("Minimum Area of Contours","Edge Detection Settings")
+        epsilon = cv2.getTrackbarPos("Epsilon (Resolution of Poly Approximation)","Edge Detection Settings")/100
+        showFilters = bool(cv2.getTrackbarPos("Show Filters","Edge Detection Settings"))
+
+        keyEvent = cv2.waitKey(1)
+        if keyEvent == ord('d'):
+            cv2.setTrackbarPos("Canny Threshold Low","Edge Detection Settings",120)
+            cv2.setTrackbarPos("Canny Threshold High","Edge Detection Settings",160)
+            cv2.setTrackbarPos("Number of Gauss Filters","Edge Detection Settings",2)
+            cv2.setTrackbarPos("Minimum Area of Contours","Edge Detection Settings",800)
+            cv2.setTrackbarPos("Epsilon (Resolution of Poly Approximation)","Edge Detection Settings",100)
+
+        imgContours, conts = ContourUtils.getContours(undist, cThr=(cannyLow, cannyHigh), gaussFilters=noGauss, minArea=minArea, epsilon=epsilon, draw=False, showFilters=showFilters)        #gets Contours from Image
         if len(conts) != 0:                           #source, ThresCanny, min Cont Area, Resolution of Poly Approx(0.1 rough 0.01 fine)
             for obj in conts:   #for every Contour
                 cv2.polylines(undist, [obj[2]], True, (0, 255, 0), 1)        #Approxes Contours with Polylines
@@ -146,8 +166,31 @@ while True:
     else:
         print("No Marker found")
     fps = cv2.getTickFrequency() / (cv2.getTickCount() - timer)
-    cv2.putText(undist, str(int(fps)), (5, undist.shape[0]-25), cv2.FONT_HERSHEY_COMPLEX, 0.7, (0, 255, 0))
-    cv2.imshow("UndistortedLive", undist)
+    cv2.putText(undist, str(int(fps)), (2, undist.shape[0]-10), cv2.FONT_HERSHEY_COMPLEX, 0.7, (0, 255, 0))
+    cv2.putText(undist, "Press h for Help", (undist.shape[1]-145, undist.shape[0] - 5), cv2.FONT_HERSHEY_COMPLEX, 0.5, (0, 0, 255))
+    dsize = (undist.shape[1]*2, undist.shape[0]*2)
+
+    # resize image
+    #cv2.setMouseCallback("image", click_and_crop)
+
+    output = cv2.resize(undist, dsize, interpolation=cv2.INTER_AREA)
+    cv2.imshow(root_wind, output)
     cv2.imshow("DistortedLive", img)
+
+    keyEvent = cv2.waitKey(1)
+
+    if keyEvent == ord('x'):
+        cv2.waitKey(0)
+        if cv2.waitKey(1) & 0xff == ord('x'):
+            break
+    elif keyEvent == ord('h'):
+        print("Opening Help")
+        helpimage = cv2.imread("help.PNG")
+        cv2.imshow("Help",helpimage)
+    elif keyEvent == ord('q'):
+
+        cv2.destroyAllWindows()
+        # done
+        exit()
 
 cv2.destroyAllWindows()

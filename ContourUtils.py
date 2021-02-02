@@ -5,15 +5,16 @@ def midpoint(ptA, ptB):
 	return ((ptA[0,0] + ptB[0,0]) * 0.5, (ptA[0,1] + ptB[0,1]) * 0.5)
 
 
-def getContours(img, cThr=[100, 100], showCanny=False, minArea=100,epsilon = 0.01, filter=0, draw=False):
+def getContours(img, cThr=[100, 100], gaussFilters = 1, showFilters=False, minArea=100,epsilon = 0.01, Cornerfilter=0, draw=False):
     imgGray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-    imgBlur = cv2.GaussianBlur(imgGray, (3, 3),1)
-    imgBlur2 = cv2.GaussianBlur(imgBlur, (3, 3), 1)
-    imgCanny = cv2.Canny(imgBlur2, cThr[0], cThr[1])
+    for i in range(gaussFilters):
+       imgGray = cv2.GaussianBlur(imgGray, (3, 3),1)
+    if showFilters: cv2.imshow("Gauss",imgGray)
+    imgCanny = cv2.Canny(imgGray, cThr[0], cThr[1])
     kernel = np.ones((3, 3))
     imgDial = cv2.dilate(imgCanny, kernel, iterations=3)
     imgThre = cv2.erode(imgDial, kernel, iterations=2)
-    if showCanny: cv2.imshow('Canny', imgCanny)
+    if showFilters: cv2.imshow('Canny', imgCanny)
     contours, hiearchy = cv2.findContours(imgThre, cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)
     finalCountours = []
     for i in contours:
@@ -23,8 +24,8 @@ def getContours(img, cThr=[100, 100], showCanny=False, minArea=100,epsilon = 0.0
             peri = cv2.arcLength(i, True)
             approx = cv2.approxPolyDP(i, epsilon * peri, True)
             bbox = cv2.boundingRect(approx)
-            if filter > 0:
-                if len(approx) == filter:
+            if Cornerfilter > 0:
+                if len(approx) == Cornerfilter:
                     finalCountours.append([len(approx), area, approx, bbox, i])
             else:
                 finalCountours.append([len(approx), area, approx, bbox, i])
@@ -34,6 +35,10 @@ def getContours(img, cThr=[100, 100], showCanny=False, minArea=100,epsilon = 0.0
         for con in finalCountours:
             #print('contour draw')
             cv2.drawContours(img, con[4], -1, (0, 0, 255), 3)
+
+    if not showFilters:
+        cv2.destroyWindow("Gauss")
+        cv2.destroyWindow("Canny")
     return img, finalCountours
 
 def reorder(myPoints):
