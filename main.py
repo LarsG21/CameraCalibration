@@ -41,7 +41,7 @@ cv2.createTrackbar("Canny Threshold Low","Edge Detection Settings", 120, 255, em
 cv2.createTrackbar("Canny Threshold High","Edge Detection Settings", 160, 255, empty)
 cv2.createTrackbar("Number of Gauss Filters","Edge Detection Settings", 2, 10, empty)
 cv2.createTrackbar("Minimum Area of Contours","Edge Detection Settings", 800, 50000, empty)
-cv2.createTrackbar("Epsilon (Resolution of Poly Approximation)","Edge Detection Settings", 1, 100, empty)
+cv2.createTrackbar("Epsilon (Resolution of Poly Approximation)","Edge Detection Settings", 1, 40, empty)
 cv2.createTrackbar("Show Filters","Edge Detection Settings", 0, 1, empty)
 
 ######################################################################
@@ -106,7 +106,7 @@ while True:
         cannyHigh = cv2.getTrackbarPos("Canny Threshold High","Edge Detection Settings")
         noGauss = cv2.getTrackbarPos("Number of Gauss Filters","Edge Detection Settings")
         minArea = cv2.getTrackbarPos("Minimum Area of Contours","Edge Detection Settings")
-        epsilon = cv2.getTrackbarPos("Epsilon (Resolution of Poly Approximation)","Edge Detection Settings")/100
+        epsilon = (cv2.getTrackbarPos("Epsilon (Resolution of Poly Approximation)","Edge Detection Settings"))/100
         showFilters = bool(cv2.getTrackbarPos("Show Filters","Edge Detection Settings"))
 
         keyEvent = cv2.waitKey(1)
