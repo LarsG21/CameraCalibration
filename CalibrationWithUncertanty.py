@@ -5,13 +5,14 @@ import os
 import utils
 import math
 import ContourUtils
+import glob
 
 # termination criteria for Subpixel Optimization
 criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 0.001)
 
+scale = 0.2   #Scale Factor for FindCorners in very large images
 
-
-def calibrateCamera(cap,rows,columns,squareSize,objp,runs,saveImages = False):
+def calibrateCamera(cap,rows,columns,squareSize,objp,runs,saveImages = False, webcam = True):
     directory1 = "C:\\Users\\Lars\\Desktop\\TestBilder\\Vorher"
     directory2 = "C:\\Users\\Lars\\Desktop\\TestBilder\\Nachher"
 
@@ -39,68 +40,96 @@ def calibrateCamera(cap,rows,columns,squareSize,objp,runs,saveImages = False):
         images = []
 
         #reads in Calib Images
-        while True:
-            succsess, img = cap.read()
-            cv2.putText(img, "Press x to take an image of Calicration Pattern. Take at least 10 images from different angles", (5, 20), cv2.FONT_HERSHEY_COMPLEX, 0.45, (0, 0, 255))
+        if webcam:#Read in images from webcam
+            while True:
+                succsess, img = cap.read()
+                cv2.putText(img, "Press x to take an image of Calicration Pattern. Take at least 10 images from different angles", (5, 20), cv2.FONT_HERSHEY_COMPLEX, 0.45, (0, 0, 255))
 
-            cv2.putText(img, "Run: {:.1f}/5".format(r+1), (210, 40), cv2.FONT_HERSHEY_COMPLEX, 0.45, (0, 0, 255))
-            if counter >9:
-                cv2.putText(img, "Press q for next step".format(counter), (5, 40), cv2.FONT_HERSHEY_COMPLEX, 0.45,(0, 0, 255))
-            else:
-                cv2.putText(img, "Captured: {:.1f}/10".format(counter), (5, 40), cv2.FONT_HERSHEY_COMPLEX, 0.45,(0, 0, 255))
-            cv2.imshow("Image", img)
-
-            if cv2.waitKey(1) & 0xff == ord('x'):
-                cv2.putText(img, "Captured", (5, 70), cv2.FONT_HERSHEY_COMPLEX, 0.7, (0, 255, 0))
+                cv2.putText(img, "Run: {:.1f}/5".format(r+1), (210, 40), cv2.FONT_HERSHEY_COMPLEX, 0.45, (0, 0, 255))
+                if counter >9:
+                    cv2.putText(img, "Press q for next step".format(counter), (5, 40), cv2.FONT_HERSHEY_COMPLEX, 0.45,(0, 0, 255))
+                else:
+                    cv2.putText(img, "Captured: {:.1f}/10".format(counter), (5, 40), cv2.FONT_HERSHEY_COMPLEX, 0.45,(0, 0, 255))
                 cv2.imshow("Image", img)
-                cv2.waitKey(500)
-                images.append(img)                                  #In Array ablegen
-                if saveImages:
-                    utils.saveImagesToDirectory(counter,img,directory1)
-                counter += 1
-                print("Captured")
-            if cv2.waitKey(1) & 0xff == ord('q'):
-                break
 
-        cv2.imshow("Image", img)
+                if cv2.waitKey(1) & 0xff == ord('x'):
+                    cv2.putText(img, "Captured", (5, 70), cv2.FONT_HERSHEY_COMPLEX, 0.7, (0, 255, 0))
+                    cv2.imshow("Image", img)
+                    cv2.waitKey(500)
+                    images.append(img)                                  #In Array ablegen
+                    if saveImages:
+                        utils.saveImagesToDirectory(counter,img,directory1)
+                    counter += 1
+                    print("Captured")
+                if cv2.waitKey(1) & 0xff == ord('q'):
+                    break
+        else:#Files in Folder
+            pathName = "CalibrationImages/Run"+str(r+1)+"/*.TIF"
+            images = [cv2.imread(file) for file in glob.glob(pathName)]
+
+        #cv2.imshow("Image", img)
         #cv2.destroyWindow("Image")
 
         #shows Images
         for frame in images:            #Show Images
-            cv2.imshow("Test",frame)
-            cv2.waitKey(50)
+            dsize = (1920,1080)
+            cv2.imshow("Test",cv2.resize(frame, dsize))
+            cv2.waitKey(200)
         cv2.destroyWindow("Test")
 
         #findCorners
         counter2 = 0
         for img in images:
+            if not webcam:# uses a downscaled version of image to give a first guess of corners
+                original =img  #keep original
+                originalGray = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
+                dsize = (int(img.shape[1]*scale) , int(img.shape[0]*scale))
+                img = cv2.resize(img, dsize)
+            print(img.shape)
+            print(original.shape)
             gray = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
 
             # Find the chess board corners
-            ret, corners = cv2.findChessboardCorners(gray, (columns,rows),None)
-            print("FindCorners")
+            print("Searching for corners...")
+            ret, corners = cv2.findChessboardCorners(gray, (columns,rows),None) #flags=cv2.CALIB_CB_FAST_CHECK   (sorgt aber aurch für false negatives !!!)
+
             # If found, add object points, image points (after refining them)
             if ret == True:
-                print("        Corners Found")
+                print("                        Corners Found")
                 objpoints.append(objp)
-                corners2 = cv2.cornerSubPix(gray,corners,(11,11),(-1,-1),criteria)
+                if webcam:          #subpixeloptimizer on original image
+                    corners2 = cv2.cornerSubPix(gray,corners,(11,11),(-1,-1),criteria)
+                    # Draw and display the corners
+                    img = cv2.drawChessboardCorners(img, (columns, rows), corners2, ret)
+                    if saveImages:
+                        utils.saveImagesToDirectory(counter2, img, directory2)
+                    counter2 += 1
+                    cv2.imshow('img', img)
+                else:   #subpixeloptimizer on original image
+                    corners = corners/scale     #corners must be scaled according to scale factor
+                    corners2 = cv2.cornerSubPix(originalGray,corners,(11,11),(-1,-1),criteria)
+                    # Draw and display the corners
+                    img = cv2.drawChessboardCorners(original, (columns, rows), corners2, ret)
+                    if saveImages:
+                        utils.saveImagesToDirectory(counter2, img, directory2)
+                    counter2 += 1
+                    dsize = (int(img.shape[1] * scale), int(img.shape[0] * scale))
+                    imgShow = cv2.resize(img, dsize)
+                    cv2.imshow('img', imgShow)
                 imgpoints.append(corners2)
 
-                # Draw and display the corners
-                img = cv2.drawChessboardCorners(img, (columns,rows), corners2,ret)
-                if saveImages:
-                    utils.saveImagesToDirectory(counter2,img,directory2)
-                counter2 += 1
-                cv2.imshow('img',img)
+
                 cv2.waitKey(200)
             else:
-                print("         No Corners Found")
+                print("                        No Corners Found")
         message = 'Found Corners in ' +str(counter2) + ' of ' + str(len(images))+ ' images'
         print('Detect at least 10 for optimal results')
         print(message)
+        dsize = (1920, 1080)
+        img = cv2.resize(img,dsize)
         cv2.putText(img, message, (50, 250), cv2.FONT_HERSHEY_COMPLEX, 1.2, (0, 0, 255),thickness=2)
         cv2.imshow('img', img)
-        cv2.waitKey(5000)
+        cv2.waitKey(3000)
         cv2.destroyWindow("img")
         ret, mtx, dist, rvecs, tvecs = cv2.calibrateCamera(objpoints, imgpoints, gray.shape[::-1],None,None)
         print('Matrix:')

@@ -26,7 +26,7 @@ ArucoSize = 53 #in mm
 saveImages = False
 undistiortTestAfterCalib = False
 saveParametersPickle = False
-loadSavedParameters = True
+loadSavedParameters = False
 
 #OpenCV Window GUI###############################
 root_wind = "Object measurement"
@@ -58,7 +58,7 @@ objp[:,:2] = np.mgrid[0:columns,0:rows].T.reshape(-1,2)*squareSize
 runs = 5
 if not loadSavedParameters:
     meanMTX,meanDIST,uncertantyMTX,uncertantyDIST = CalibrationWithUncertanty.calibrateCamera(cap=cap,rows=rows,columns=columns,squareSize=squareSize,objp=objp,runs=runs,
-                                                                                            saveImages=False)
+                                                                                            saveImages=False,webcam=False)
 if saveParametersPickle:
     pickle_out_MTX = open("PickleFiles/mtx.pickle","wb")
     pickle.dump(meanMTX,pickle_out_MTX)
