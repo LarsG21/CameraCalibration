@@ -102,20 +102,11 @@ while True:
     cv2.waitKey(1)
     if showConts:
 
-        cannyLow = cv2.getTrackbarPos("Canny Threshold Low", "Edge Detection Settings")
-        cannyHigh = cv2.getTrackbarPos("Canny Threshold High","Edge Detection Settings")
-        noGauss = cv2.getTrackbarPos("Number of Gauss Filters","Edge Detection Settings")
-        minArea = cv2.getTrackbarPos("Minimum Area of Contours","Edge Detection Settings")
-        epsilon = (cv2.getTrackbarPos("Epsilon (Resolution of Poly Approximation)","Edge Detection Settings"))/100
-        showFilters = bool(cv2.getTrackbarPos("Show Filters","Edge Detection Settings"))
+        cannyLow, cannyHigh, noGauss, minArea, epsilon, showFilters = gui.updateTrackBar()
 
         keyEvent = cv2.waitKey(1)
         if keyEvent == ord('d'):
-            cv2.setTrackbarPos("Canny Threshold Low","Edge Detection Settings",120)
-            cv2.setTrackbarPos("Canny Threshold High","Edge Detection Settings",160)
-            cv2.setTrackbarPos("Number of Gauss Filters","Edge Detection Settings",2)
-            cv2.setTrackbarPos("Minimum Area of Contours","Edge Detection Settings",800)
-            cv2.setTrackbarPos("Epsilon (Resolution of Poly Approximation)","Edge Detection Settings",100)
+            gui.resetTrackBar()
 
         imgContours, conts = ContourUtils.getContours(undist, cThr=(cannyLow, cannyHigh), gaussFilters=noGauss, minArea=minArea, epsilon=epsilon, draw=False, showFilters=showFilters)        #gets Contours from Image
         if len(conts) != 0:                           #source, ThresCanny, min Cont Area, Resolution of Poly Approx(0.1 rough 0.01 fine)
