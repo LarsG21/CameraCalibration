@@ -6,9 +6,10 @@ import utils
 import math
 import ContourUtils
 import glob
+import matplotlib.pyplot as plt
 
 # termination criteria for Subpixel Optimization
-criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 0.001)
+criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 60, 0.001)
 
 scale = 0.2   #Scale Factor for FindCorners in very large images
 
@@ -79,14 +80,15 @@ def calibrateCamera(cap,rows,columns,squareSize,objp,runs,saveImages = False, we
 
         #findCorners
         counter2 = 0
+
         for img in images:
             if not webcam:# uses a downscaled version of image to give a first guess of corners
                 original =img  #keep original
                 originalGray = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
                 dsize = (int(img.shape[1]*scale) , int(img.shape[0]*scale))
+                img = cv2.GaussianBlur(img,(3,3),1) #Blur before rezise to avoid alising error
                 img = cv2.resize(img, dsize)
             print(img.shape)
-            print(original.shape)
             gray = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
 
             # Find the chess board corners
@@ -98,7 +100,7 @@ def calibrateCamera(cap,rows,columns,squareSize,objp,runs,saveImages = False, we
                 print("                        Corners Found")
                 objpoints.append(objp)
                 if webcam:          #subpixeloptimizer on original image
-                    corners2 = cv2.cornerSubPix(gray,corners,(11,11),(-1,-1),criteria)
+                    corners2 = cv2.cornerSubPix(gray,corners,(22,22),(-1,-1),criteria)
                     # Draw and display the corners
                     img = cv2.drawChessboardCorners(img, (columns, rows), corners2, ret)
                     if saveImages:
@@ -122,6 +124,7 @@ def calibrateCamera(cap,rows,columns,squareSize,objp,runs,saveImages = False, we
                 cv2.waitKey(200)
             else:
                 print("                        No Corners Found")
+
         message = 'Found Corners in ' +str(counter2) + ' of ' + str(len(images))+ ' images'
         print('Detect at least 10 for optimal results')
         print(message)
@@ -139,16 +142,16 @@ def calibrateCamera(cap,rows,columns,squareSize,objp,runs,saveImages = False, we
         mean_error = 0
         meanErrorZeroDist = 0
         distZero = np.array([0,0,0,0,0],dtype=float)
+        #fig, ax = plt.subplots()
         for i in range(len(objpoints)):
             imgpoints2, _ = cv2.projectPoints(objpoints[i], rvecs[i], tvecs[i], mtx, distZero)
             error = cv2.norm(imgpoints[i], imgpoints2, cv2.NORM_L2) / len(imgpoints2)
             meanErrorZeroDist += error
-            if i == 1:
-                pass
-                # print('Soll')
-                # print(imgpoints[i])
-                # print('Nach Reproduktion')
-                # print(imgpoints2)
+        #ax.scatter(objp[:,0]*25, objp[:,1]*25)
+        #print(imgpoints[0][:,0][:,0])
+        #ax.scatter(imgpoints[0][:, 0], imgpoints[0][:, 1])
+        #ax.scatter(imgpoints[0][:,0][:,0],imgpoints[0][:,0][:,1])
+        #plt.show()
         meanErrorZeroDist = meanErrorZeroDist / len(objpoints)
         print("Mean error between Ideal Chessboard Corners and Image Corners: {}".format(meanErrorZeroDist))
         for i in range(len(objpoints)):
@@ -244,5 +247,5 @@ def calibrateCamera(cap,rows,columns,squareSize,objp,runs,saveImages = False, we
         file.writelines("% s\n" % data for data in books)
         file.close()
 
-
+    cv2.destroyAllWindows()
     return meanMTX,meanDIST,uncertantyMTX,uncertantyDIST

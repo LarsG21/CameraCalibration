@@ -1,6 +1,6 @@
 import cv2
 
-img = cv2.imread('CalibrationImages/Run5/Calib00019.TIF', cv2.IMREAD_GRAYSCALE)
+img = cv2.imread('CalibrationImages/Run1/Calib00019.TIF', cv2.IMREAD_GRAYSCALE)
 src = cv2.cuda_GpuMat()
 src.upload(img)
 

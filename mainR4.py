@@ -26,7 +26,7 @@ ArucoSize = 53 #in mm
 saveImages = False
 undistiortTestAfterCalib = False
 saveParametersPickle = False
-loadSavedParameters = False
+loadSavedParameters = True
 webcam = True
 
 #OpenCV Window GUI###############################
@@ -62,11 +62,10 @@ objp[:,:2] = np.mgrid[0:columns,0:rows].T.reshape(-1,2)*squareSize
 #print(objp[:,1])
 
 
-runs = 1
+runs = 5
 if not loadSavedParameters:
     meanMTX,meanDIST,uncertantyMTX,uncertantyDIST = CalibrationWithUncertanty.calibrateCamera(cap=cap,rows=rows,columns=columns,squareSize=squareSize,objp=objp,runs=runs,
                                                                                             saveImages=False,webcam=webcam)
-
 if saveParametersPickle:
     pickle_out_MTX = open("PickleFiles/mtx.pickle","wb")
     pickle.dump(meanMTX,pickle_out_MTX)
@@ -103,14 +102,27 @@ putText = True
 pixelsPerMetric = 1
 pixelsPerMetricUndist = 1
 
+
+############################################Dummy Save Test images from webcam!##################################
+
+
+while True:
+
+
+
+
+
+
+
+
+pathName = "TestImages/*.TIF"
+images = [cv2.imread(file) for file in glob.glob(pathName)]
+
 while True:
     timer = cv2.getTickCount()          #FPS Counter
     succsess, img = cap.read()
     undist = utils.undistortFunction(img, meanMTX, meanDIST)    #Undistort Image
     cv2.waitKey(1)
-
-    corners, ids, rejectedImgPoints = aruco.detectMarkers(img, aruco_dict)           #Detects AruCo Marker in Image
-    cornersUndist, idsUndist, rejectedImgPointsUndist = aruco.detectMarkers(undist, aruco_dict)  # Detects AruCo Marker in Image
     if showConts:
 
         cannyLow, cannyHigh, noGauss, minArea, epsilon, showFilters = gui.updateTrackBar()
@@ -137,7 +149,8 @@ while True:
                     if putText:
                         cv2.putText(undist, "{:.1f}".format(distance),(int(midX ), int(midY)), cv2.FONT_HERSHEY_SIMPLEX,0.45, (0, 0, 255), 1)
 
-
+    corners, ids, rejectedImgPoints = aruco.detectMarkers(img, aruco_dict)           #Detects AruCo Marker in Image
+    cornersUndist, idsUndist, rejectedImgPointsUndist = aruco.detectMarkers(undist, aruco_dict)  # Detects AruCo Marker in Image
     corners = np.array(corners)
     reorderd = ContourUtils.reorder(corners)             #Reorders Corners TL,TR,BL,BR
     cornersUndist = np.array(cornersUndist)
