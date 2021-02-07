@@ -120,10 +120,10 @@ while True:
     s, image = cap.read()
     cv2.imshow("Image",image)
     if cv2.waitKey(1) & 0xff == ord('x'):
+        utils.saveImagesToDirectory(testCounter, image, "C:\\Users\\Lars\\Desktop\\TestBilder\\Vorher")
         cv2.putText(image, "Captured", (5, 70), cv2.FONT_HERSHEY_COMPLEX, 0.7, (0, 255, 0))
         cv2.imshow("Image", image)
         cv2.waitKey(500)
-        utils.saveImagesToDirectory(testCounter, image, "C:\\Users\\Lars\\Desktop\\TestBilder\\Vorher")
         testCounter +=1
     if cv2.waitKey(1) & 0xff == ord('q'):
         break
@@ -141,27 +141,28 @@ for frame in images:  # Show Images
     cv2.waitKey(200)
 cv2.destroyWindow("Test")
 
+cv2.waitKey(200)
 
 for img in images:
-    print("now in image")
+    original = img              #Alwasy use original after one loop
     while True:
-        print("now in while")
+        imgShowCopy = original.copy()
         timer = cv2.getTickCount()          #FPS Counter
-        undist = utils.undistortFunction(img, meanMTX, meanDIST)    #Undistort Image
+        undist = utils.undistortFunction(imgShowCopy, meanMTX, meanDIST)    #Undistort Image
         cv2.waitKey(1)
 
-        corners, ids, rejectedImgPoints = aruco.detectMarkers(img, aruco_dict)           #Detects AruCo Marker in Image
+        corners, ids, rejectedImgPoints = aruco.detectMarkers(imgShowCopy, aruco_dict)           #Detects AruCo Marker in Image
         cornersUndist, idsUndist, rejectedImgPointsUndist = aruco.detectMarkers(undist, aruco_dict)  # Detects AruCo Marker in Image
 
         if showConts:
-            print("now in showconts")
+
             cannyLow, cannyHigh, noGauss, minArea, epsilon, showFilters = gui.updateTrackBar()
 
             keyEvent = cv2.waitKey(1)
             if keyEvent == ord('d'):
                 gui.resetTrackBar()
 
-            imgContours, conts = ContourUtils.getContours(undist, cThr=(cannyLow, cannyHigh), gaussFilters=50, minArea=minArea, epsilon=epsilon, draw=False, showFilters=showFilters)        #gets Contours from Image
+            imgContours, conts = ContourUtils.getContours(undist, cThr=(cannyLow, cannyHigh), gaussFilters=noGauss, minArea=minArea, epsilon=epsilon, draw=False, showFilters=showFilters)        #gets Contours from Image
             if len(conts) != 0:                           #source, ThresCanny, min Cont Area, Resolution of Poly Approx(0.1 rough 0.01 fine)
                 for obj in conts:   #for every Contour
                     cv2.polylines(undist, [obj[2]], True, (0, 255, 0), 1)        #Approxes Contours with Polylines
@@ -186,7 +187,7 @@ for img in images:
         reorderdUndist = ContourUtils.reorder(cornersUndist)  # Reorders Corners TL,TR,BL,BR
 
         if reorderd is not None and reorderdUndist is not None:
-            pixelsPerMetric = utils.calculatePixelsPerMetric(img, reorderd, ArucoSize)  #Calculates Pixels/Metric and Drwas
+            pixelsPerMetric = utils.calculatePixelsPerMetric(imgShowCopy, reorderd, ArucoSize)  #Calculates Pixels/Metric and Drwas
             pixelsPerMetricUndist = utils.calculatePixelsPerMetric(undist, reorderdUndist, ArucoSize,)  #Calculates Pixels/Metric
             #cv2.putText(img, "Pixels per mm", (5, 50), cv2.FONT_HERSHEY_COMPLEX, 0.7,(0, 0, 255))  # Draws Pixel/Lengh variable on Image'
             #cv2.putText(img, str(pixelsPerMetric),(5, 75), cv2.FONT_HERSHEY_COMPLEX, 0.7, (0, 0, 255)) #Draws Pixel/Lengh variable on Image'
@@ -194,15 +195,15 @@ for img in images:
             cv2.putText(undist, str(pixelsPerMetricUndist), (5, 50), cv2.FONT_HERSHEY_COMPLEX, 0.7,(0, 0, 255))  # Draws Pixel/Lengh variable on Image'
         else:
             cv2.putText(undist, "AruCo not correctly Detected!", (5, 25), cv2.FONT_HERSHEY_COMPLEX, 0.7, (0, 0, 255))
-        aruco.drawDetectedMarkers(img, corners)      #Drwas Box around Marker
+        aruco.drawDetectedMarkers(imgShowCopy, corners)      #Drwas Box around Marker
         rvec, tvec, _ = aruco.estimatePoseSingleMarkers(corners, ArucoSize, meanMTX, meanDIST)  # größße des marker in m
         # rvecZeroDist, tvecZeroDist, _ = aruco.estimatePoseSingleMarkers(corners, 0.053, mtx, distZero)  # größße des marker in m
         if rvec is not None and tvec is not None:
-            aruco.drawAxis(img, meanMTX, meanDIST, rvec, tvec, 50)     #Drwas AruCo Axis
-            cv2.putText(img, "%.1f cm -- %.0f deg" % ((tvec[0][0][2] /10), (rvec[0][0][2] / math.pi * 180)), (0, 230),
+            aruco.drawAxis(imgShowCopy, meanMTX, meanDIST, rvec, tvec, 50)     #Drwas AruCo Axis
+            cv2.putText(imgShowCopy, "%.1f cm -- %.0f deg" % ((tvec[0][0][2] /10), (rvec[0][0][2] / math.pi * 180)), (0, 230),
                         cv2.FONT_HERSHEY_SIMPLEX, 0.7, (244, 244, 244))
             if abs(rvec[0][0][2] / math.pi * 180) > 3:
-                cv2.putText(img,"Angle should be below 3 degrees!",(0, 260), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255))
+                cv2.putText(imgShowCopy,"Angle should be below 3 degrees!",(0, 260), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255))
             print(rvec)
             print(tvec)
         else:
@@ -210,27 +211,26 @@ for img in images:
         fps = cv2.getTickFrequency() / (cv2.getTickCount() - timer)
         cv2.putText(undist, str(int(fps)), (2, undist.shape[0]-10), cv2.FONT_HERSHEY_COMPLEX, 0.7, (0, 255, 0))
         cv2.putText(undist, "Press h for Help", (undist.shape[1]-145, undist.shape[0] - 5), cv2.FONT_HERSHEY_COMPLEX, 0.5, (0, 0, 255))
-        dsize = (undist.shape[1]*2, undist.shape[0]*2)
+        dsize = (undist.shape[1]*2, imgContours.shape[0]*2)
 
         # resize image
         #cv2.setMouseCallback("image", click_and_crop)
 
         output = cv2.resize(undist, dsize, interpolation=cv2.INTER_AREA)
         cv2.imshow(root_wind, output)       #Main Window
-        cv2.imshow("MarkerCheck", img)
-
-        keyEvent = cv2.waitKey(1) #next image
+        cv2.imshow("MarkerCheck", imgShowCopy)
+        keyEvent = cv2.waitKey(1) #next imageqq
         if cv2.waitKey(1) & 0xff == ord('x'):
             break
-    keyEvent = cv2.waitKey(1)
-    if keyEvent == ord('h'):
-        print("Opening Help")
-        helpimage = cv2.imread("help.PNG")
-        cv2.imshow("Help",helpimage)
-    elif keyEvent == ord('q'):
-        exit()
-        cv2.destroyAllWindows()
-        # done
+
+        elif keyEvent == ord('h'):
+            print("Opening Help")
+            helpimage = cv2.imread("help.PNG")
+            cv2.imshow("Help",helpimage)
+        elif keyEvent == ord('q'):
+            exit()
+            cv2.destroyAllWindows()
+            # done
 
 
 cv2.destroyAllWindows()

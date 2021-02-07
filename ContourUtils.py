@@ -6,7 +6,8 @@ def midpoint(ptA, ptB):
 
 
 def getContours(img, cThr=[100, 150], gaussFilters = 1, showFilters=False, minArea=100,epsilon = 0.01, Cornerfilter=0, draw=False):
-    imgGray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    imgContours = img
+    imgGray = cv2.cvtColor(imgContours, cv2.COLOR_BGR2GRAY)
     #img = cv2.UMat(img)
     for i in range(gaussFilters):
        imgGray = cv2.GaussianBlur(imgGray, (3, 3),1)
@@ -35,12 +36,12 @@ def getContours(img, cThr=[100, 150], gaussFilters = 1, showFilters=False, minAr
     if draw:
         for con in finalCountours:
             #print('contour draw')
-            cv2.drawContours(img, con[4], -1, (0, 0, 255), 3)
+            cv2.drawContours(imgContours, con[4], -1, (0, 0, 255), 3)
 
     if not showFilters:
         cv2.destroyWindow("Gauss")
         cv2.destroyWindow("Canny")
-    return img, finalCountours
+    return imgContours, finalCountours
 
 def reorder(myPoints):
     if myPoints.shape == (1,1,4,2):   #4,1,2
