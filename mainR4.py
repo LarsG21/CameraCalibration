@@ -38,13 +38,13 @@ objp[:,:2] = np.mgrid[0:columns,0:rows].T.reshape(-1,2)*squareSize
 ArucoSize = 53 #in mm
 
 #Pathname for Test images
-pathName = "C:\\Users\\gudjons\\Desktop\\MessBilder\\*.TIF"   #Noch in TIF Ändern!!!
+pathName = "C:\\Users\\gudjons\\Desktop\\MessBilder\\*.TIF"
 
 
 saveImages = False
 undistiortTestAfterCalib = False
 saveParametersPickle = False
-loadSavedParameters = True
+loadSavedParameters = False
 webcam = False
 
 
@@ -71,9 +71,6 @@ cv2.createTrackbar("Epsilon (Resolution of Poly Approximation)","Edge Detection 
 cv2.createTrackbar("Show Filters","Edge Detection Settings", 0, 1, empty)
 
 ######################################################################
-
-
-
 
 
 runs = 5

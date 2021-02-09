@@ -8,6 +8,7 @@ import ContourUtils
 import glob
 import matplotlib.pyplot as plt
 
+
 # termination criteria for Subpixel Optimization
 criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 60, 0.001)
 
@@ -30,6 +31,15 @@ def calibrateCamera(cap,rows,columns,squareSize,objp,runs,saveImages = False, we
     allMTX = []
     allDist = []
     allRepErr = []
+
+    fig, ax = plt.subplots()   #Plot for Rep Error
+    fig2, ax2 = plt.subplots()  # Plot for K
+
+    N = 5
+    X_Axis = np.arange(N)
+    width = 0.35
+    meanErrorsBefore = []
+    meanErrorsAfter = []
 
 
     for r in range(runs):
@@ -75,7 +85,7 @@ def calibrateCamera(cap,rows,columns,squareSize,objp,runs,saveImages = False, we
         for frame in images:            #Show Images
             dsize = (1920,1080)
             cv2.imshow("Test",cv2.resize(frame, dsize))
-            cv2.waitKey(20)
+            #cv2.waitKey(20)
         cv2.destroyWindow("Test")
 
         #findCorners
@@ -121,7 +131,7 @@ def calibrateCamera(cap,rows,columns,squareSize,objp,runs,saveImages = False, we
                 imgpoints.append(corners2)
 
 
-                cv2.waitKey(200)
+                #cv2.waitKey(200)
             else:
                 print("                        No Corners Found")
 
@@ -132,7 +142,7 @@ def calibrateCamera(cap,rows,columns,squareSize,objp,runs,saveImages = False, we
         img = cv2.resize(img,dsize)
         cv2.putText(img, message, (50, 250), cv2.FONT_HERSHEY_COMPLEX, 1.2, (0, 0, 255),thickness=2)
         cv2.imshow('img', img)
-        cv2.waitKey(3000)
+        #cv2.waitKey(2000)
         cv2.destroyWindow("img")
         ret, mtx, dist, rvecs, tvecs = cv2.calibrateCamera(objpoints, imgpoints, gray.shape[::-1],None,None)
         print('Matrix:')
@@ -142,17 +152,13 @@ def calibrateCamera(cap,rows,columns,squareSize,objp,runs,saveImages = False, we
         mean_error = 0
         meanErrorZeroDist = 0
         distZero = np.array([0,0,0,0,0],dtype=float)
-        #fig, ax = plt.subplots()
+
         for i in range(len(objpoints)):
             imgpoints2, _ = cv2.projectPoints(objpoints[i], rvecs[i], tvecs[i], mtx, distZero)
             error = cv2.norm(imgpoints[i], imgpoints2, cv2.NORM_L2) / len(imgpoints2)
             meanErrorZeroDist += error
-        #ax.scatter(objp[:,0]*25, objp[:,1]*25)
-        #print(imgpoints[0][:,0][:,0])
-        #ax.scatter(imgpoints[0][:, 0], imgpoints[0][:, 1])
-        #ax.scatter(imgpoints[0][:,0][:,0],imgpoints[0][:,0][:,1])
-        #plt.show()
         meanErrorZeroDist = meanErrorZeroDist / len(objpoints)
+        meanErrorsBefore.append(round(meanErrorZeroDist, 10))
         print("Mean error between Ideal Chessboard Corners and Image Corners: {}".format(meanErrorZeroDist))
         for i in range(len(objpoints)):
             imgpoints2, _ = cv2.projectPoints(objpoints[i], rvecs[i], tvecs[i], mtx, dist)
@@ -160,12 +166,10 @@ def calibrateCamera(cap,rows,columns,squareSize,objp,runs,saveImages = False, we
             mean_error += error
             if i == 1:
                 pass
-                # print('Soll')
-                # print(imgpoints[i])
-                # print('Nach Reproduktion')
-                # print(imgpoints2)
         mean_error = mean_error / len(objpoints)
+        meanErrorsAfter.append(round(mean_error, 10))
         print("Mean error between projected Objecktpoints using distortion parameters to Points in real Image: {}".format(mean_error))
+
 
         with open('repErrors.txt', 'a') as file:
 
@@ -180,7 +184,19 @@ def calibrateCamera(cap,rows,columns,squareSize,objp,runs,saveImages = False, we
         allMTX.append(mtx)
         allDist.append(dist)
 
+    #########################Plot Projection Errors######################################
+    rects1 = ax.bar(X_Axis, tuple(meanErrorsBefore), width, color='r')
+    rects2 = ax.bar(X_Axis+width, tuple(meanErrorsAfter), width, color='g')
 
+    ax.set_ylabel('Reprojectio Error')
+    ax.set_title('Before and after Calibration')
+    ax.set_xticks(X_Axis + width / 2)
+    ax.set_xticklabels(('Run1', 'Run2', 'Run3', 'Run4', 'Run5'))
+
+    ax.legend((rects1[0], rects2[0]), ('before calibration', 'after calibration'))
+
+    plt.draw()
+    #####################################################################################
     MTXStack = np.stack(allMTX,axis=1)
     meanMTX = np.mean(MTXStack,axis=1)
     stdMTX = np.std(MTXStack,axis=1)
@@ -191,11 +207,6 @@ def calibrateCamera(cap,rows,columns,squareSize,objp,runs,saveImages = False, we
     meanFy = meanMTX[1, 1]
     meanX0 = meanMTX[0, 2]
     meanY0 = meanMTX[1, 2]
-
-    #print('meanFx ', meanFx)
-    #print('meanFy ', meanFy)
-    #print('meanX0 ', meanX0)
-    #print('meanY0 ', meanY0)
 
     DISTStack = np.stack(allDist,axis=1)
     meanDIST = np.mean(DISTStack,axis=1)
@@ -218,6 +229,19 @@ def calibrateCamera(cap,rows,columns,squareSize,objp,runs,saveImages = False, we
 
     uncertantyMTX = 1.242*stdMTX
     uncertantyDIST = 1.242*stdDist
+    print((meanFx, meanFy, meanX0, meanY0))
+    print((uncertantyMTX[0,0], uncertantyMTX[1,1], uncertantyMTX[0,2], uncertantyMTX[1,2]))
+
+    #########################Plot Internal Camera Parameters######################################
+    rects1 = ax2.bar(np.arange(4), (meanFx, meanFy, meanX0, meanY0), width, color='r', yerr=(uncertantyMTX[0,0], uncertantyMTX[1,1], uncertantyMTX[0,2], uncertantyMTX[1,2]))
+
+    ax2.set_ylabel('[Pixel]')
+    ax2.set_title('Internal Camera Parameters')
+    ax2.set_xticks(np.arange(4) + width / 2)
+    ax2.set_xticklabels(('Fx', 'Fy', 'X0', 'Y0'))
+    plt.draw()
+    #####################################################################################
+
 
 
     print('Parameter inklusive Konfidenzintervalle (95%):')
@@ -248,4 +272,7 @@ def calibrateCamera(cap,rows,columns,squareSize,objp,runs,saveImages = False, we
         file.close()
 
     cv2.destroyAllWindows()
+
+    plt.show(block=False)
+    cv2.waitKey(8000)
     return meanMTX,meanDIST,uncertantyMTX,uncertantyDIST

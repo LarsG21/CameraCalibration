@@ -67,6 +67,9 @@ def calculatePixelsPerMetric(img,reorderd,ArucoSize,draw = True):
                     0.65, (0, 0, 255), 2)
     return pixelsPerMetric
 
+
+
+
 def undistortPicture(cap,saveImages,meanMTX,meanDIST):
     print("Take picture to undistort")
     while True:
