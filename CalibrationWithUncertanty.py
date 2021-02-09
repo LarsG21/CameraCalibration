@@ -14,8 +14,8 @@ criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 60, 0.001)
 scale = 0.2   #Scale Factor for FindCorners in very large images
 
 def calibrateCamera(cap,rows,columns,squareSize,objp,runs,saveImages = False, webcam = True):
-    directory1 = "C:\\Users\\Lars\\Desktop\\TestBilder\\Vorher"
-    directory2 = "C:\\Users\\Lars\\Desktop\\TestBilder\\Nachher"
+    directory1 = "C:\\Users\\gudjons\\Desktop\\Corners\\Vorher"
+    directory2 = "C:\\Users\\gudjons\\Desktop\\Corners\\Nacher"
 
     open('repErrors.txt', 'w').close()
 

@@ -79,7 +79,7 @@ cv2.createTrackbar("Show Filters","Edge Detection Settings", 0, 1, empty)
 runs = 5
 if not loadSavedParameters:
     meanMTX,meanDIST,uncertantyMTX,uncertantyDIST = CalibrationWithUncertanty.calibrateCamera(cap=cap,rows=rows,columns=columns,squareSize=squareSize,objp=objp,runs=runs,
-                                                                                            saveImages=False,webcam=webcam)
+                                                                                            saveImages=True,webcam=webcam)
 if saveParametersPickle:
     pickle_out_MTX = open("PickleFiles/mtx.pickle","wb")
     pickle.dump(meanMTX,pickle_out_MTX)

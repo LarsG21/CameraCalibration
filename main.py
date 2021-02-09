@@ -13,20 +13,20 @@ import pickle
 import glob
 
 
-cap = cv2.VideoCapture(0)
+cap = cv2.VideoCapture(1)
 
 cap.set(2,1920)
 cap.set(3,1080)
 
-rows = 6            #17
-columns = 9         #28
+rows = 17            #17
+columns = 28         #28
 
 ArucoSize = 53 #in mm
 
 saveImages = False
 undistiortTestAfterCalib = False
 saveParametersPickle = False
-loadSavedParameters = True
+loadSavedParameters = False
 webcam = True
 
 #OpenCV Window GUI###############################
