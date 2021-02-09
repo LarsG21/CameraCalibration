@@ -75,7 +75,7 @@ def calibrateCamera(cap,rows,columns,squareSize,objp,runs,saveImages = False, we
         for frame in images:            #Show Images
             dsize = (1920,1080)
             cv2.imshow("Test",cv2.resize(frame, dsize))
-            cv2.waitKey(200)
+            cv2.waitKey(20)
         cv2.destroyWindow("Test")
 
         #findCorners

@@ -13,9 +13,14 @@ import pickle
 import glob
 
 
+textThikness = 10  #1
+textSize = 5     #0.7
+circleRadius = 10   #0.8
+circleThikness = 20  #1
+lineThikness = 8   #1
 
-rows = 6            #17
-columns = 9         #28
+rows = 17            #17   6
+columns = 28         #28    9
 
 # termination criteria for Subpixel Optimization
 criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 0.001)
@@ -33,20 +38,20 @@ objp[:,:2] = np.mgrid[0:columns,0:rows].T.reshape(-1,2)*squareSize
 ArucoSize = 53 #in mm
 
 #Pathname for Test images
-pathName = "C:\\Users\\Lars\\Desktop\\TestBilder\\Vorher/*.jpg"   #Noch in TIF Ändern!!!
+pathName = "C:\\Users\\gudjons\\Desktop\\MessBilder\\*.TIF"   #Noch in TIF Ändern!!!
 
 
 saveImages = False
 undistiortTestAfterCalib = False
 saveParametersPickle = False
 loadSavedParameters = True
-webcam = True
+webcam = False
 
-if webcam:
-    cap = cv2.VideoCapture(0)
 
-    cap.set(2,1920)
-    cap.set(3,1080)
+cap = cv2.VideoCapture(0)
+
+cap.set(2,1920)
+cap.set(3,1080)
 
 
 #OpenCV Window GUI###############################
@@ -60,7 +65,7 @@ cv2.namedWindow(slider)
 cv2.resizeWindow("Edge Detection Settings", 640, 240)
 cv2.createTrackbar("Canny Threshold Low","Edge Detection Settings", 120, 255, empty)
 cv2.createTrackbar("Canny Threshold High","Edge Detection Settings", 160, 255, empty)
-cv2.createTrackbar("Number of Gauss Filters","Edge Detection Settings", 2, 10, empty)
+cv2.createTrackbar("Number of Gauss Filters","Edge Detection Settings", 2, 20, empty)
 cv2.createTrackbar("Minimum Area of Contours","Edge Detection Settings", 800, 50000, empty)
 cv2.createTrackbar("Epsilon (Resolution of Poly Approximation)","Edge Detection Settings", 1, 40, empty)
 cv2.createTrackbar("Show Filters","Edge Detection Settings", 0, 1, empty)
@@ -71,7 +76,7 @@ cv2.createTrackbar("Show Filters","Edge Detection Settings", 0, 1, empty)
 
 
 
-runs = 1
+runs = 5
 if not loadSavedParameters:
     meanMTX,meanDIST,uncertantyMTX,uncertantyDIST = CalibrationWithUncertanty.calibrateCamera(cap=cap,rows=rows,columns=columns,squareSize=squareSize,objp=objp,runs=runs,
                                                                                             saveImages=False,webcam=webcam)
@@ -88,6 +93,7 @@ if saveParametersPickle:
     pickle_out_DIST_Un = open("PickleFiles/uncertaintyDist.pickle", "wb")
     pickle.dump(uncertantyDIST, pickle_out_DIST_Un)
     pickle_out_DIST_Un.close()
+    print("Parameters Saved")
 
 if loadSavedParameters:
     pickle_in_MTX = open("PickleFiles/mtx.pickle","rb")
@@ -96,6 +102,7 @@ if loadSavedParameters:
     pickle_in_DIST = open("PickleFiles/dist.pickle", "rb")
     meanDIST = pickle.load(pickle_in_DIST)
     print(meanDIST)
+    print("Parameters Loaded")
 
 if undistiortTestAfterCalib:
     utils.undistortPicture(cap, saveImages, meanMTX, meanDIST)
@@ -113,21 +120,22 @@ pixelsPerMetricUndist = 1
 
 
 ############################################Dummy Save Test images from webcam!##################################
-
-testCounter = 0
-while True:
-    print("Take Image of  Object")
-    s, image = cap.read()
-    cv2.imshow("Image",image)
-    if cv2.waitKey(1) & 0xff == ord('x'):
-        utils.saveImagesToDirectory(testCounter, image, "C:\\Users\\Lars\\Desktop\\TestBilder\\Vorher")
-        cv2.putText(image, "Captured", (5, 70), cv2.FONT_HERSHEY_COMPLEX, 0.7, (0, 255, 0))
-        cv2.imshow("Image", image)
-        cv2.waitKey(500)
-        testCounter +=1
-    if cv2.waitKey(1) & 0xff == ord('q'):
-        break
-cv2.destroyWindow("Image")
+testing = False
+if testing:
+    testCounter = 0
+    while True:
+        print("Take Image of  Object")
+        s, image = cap.read()
+        cv2.imshow("Image",image)
+        if cv2.waitKey(1) & 0xff == ord('x'):
+            utils.saveImagesToDirectory(testCounter, image, "C:\\Users\\Lars\\Desktop\\TestBilder\\Vorher")
+            cv2.putText(image, "Captured", (5, 70), cv2.FONT_HERSHEY_COMPLEX, 0.7, (0, 255, 0))
+            cv2.imshow("Image", image)
+            cv2.waitKey(500)
+            testCounter +=1
+        if cv2.waitKey(1) & 0xff == ord('q'):
+            break
+    cv2.destroyWindow("Image")
 
 #####################################################################################################
 
@@ -135,7 +143,9 @@ print("loading Images...")
 images = [cv2.imread(file) for file in glob.glob(pathName)]
 
 print("showing Images...")
+
 for frame in images:  # Show Images
+    print("Test")
     dsize = (1920, 1080)
     cv2.imshow("Test", cv2.resize(frame, dsize))
     cv2.waitKey(200)
@@ -165,11 +175,11 @@ for img in images:
             imgContours, conts = ContourUtils.getContours(undist, cThr=(cannyLow, cannyHigh), gaussFilters=noGauss, minArea=minArea, epsilon=epsilon, draw=False, showFilters=showFilters)        #gets Contours from Image
             if len(conts) != 0:                           #source, ThresCanny, min Cont Area, Resolution of Poly Approx(0.1 rough 0.01 fine)
                 for obj in conts:   #for every Contour
-                    cv2.polylines(undist, [obj[2]], True, (0, 255, 0), 1)        #Approxes Contours with Polylines
+                    cv2.polylines(undist, [obj[2]], True, (0, 255, 0),lineThikness)        #Approxes Contours with Polylines
                     #print("Number of PolyPoints",str(obj[0]))
                     #print(obj[2])
                     for i in range(len(obj[2])):            #for every contour in an image
-                        cv2.circle(undist, (int(obj[2][i][0,0]),int(obj[2][i][0,1])), 1, (255, 255, 0), 2)      #draw approx Points
+                        cv2.circle(undist, (int(obj[2][i][0,0]),int(obj[2][i][0,1])), circleRadius, (255, 255, 0), circleThikness)      #draw approx Points
                         if i == len(obj[2])-1:  #spacial Case Distance between Last and first point
                             d = dist.euclidean((obj[2][i][0, 0], obj[2][i][0, 1]), (obj[2][0][0, 0], obj[2][0][0, 1]))  #distace between points
                             (midX, midY) = ContourUtils.midpoint(obj[2][i], obj[2][0])
@@ -178,7 +188,7 @@ for img in images:
                             (midX, midY) = ContourUtils.midpoint(obj[2][i], obj[2][i + 1])
                         distance = d / pixelsPerMetricUndist
                         if putText:
-                            cv2.putText(undist, "{:.1f}".format(distance),(int(midX ), int(midY)), cv2.FONT_HERSHEY_SIMPLEX,0.45, (0, 0, 255), 1)
+                            cv2.putText(undist, "{:.1f}".format(distance),(int(midX ), int(midY)), cv2.FONT_HERSHEY_SIMPLEX,textSize, (0, 0, 255), textThikness)
 
 
         corners = np.array(corners)
@@ -191,34 +201,35 @@ for img in images:
             pixelsPerMetricUndist = utils.calculatePixelsPerMetric(undist, reorderdUndist, ArucoSize,)  #Calculates Pixels/Metric
             #cv2.putText(img, "Pixels per mm", (5, 50), cv2.FONT_HERSHEY_COMPLEX, 0.7,(0, 0, 255))  # Draws Pixel/Lengh variable on Image'
             #cv2.putText(img, str(pixelsPerMetric),(5, 75), cv2.FONT_HERSHEY_COMPLEX, 0.7, (0, 0, 255)) #Draws Pixel/Lengh variable on Image'
-            cv2.putText(undist, "Pixels per mm", (5, 25), cv2.FONT_HERSHEY_COMPLEX, 0.7,(0, 0, 255))  # Draws Pixel/Lengh variable on Image'
-            cv2.putText(undist, str(pixelsPerMetricUndist), (5, 50), cv2.FONT_HERSHEY_COMPLEX, 0.7,(0, 0, 255))  # Draws Pixel/Lengh variable on Image'
+            cv2.putText(undist, "Pixels per mm", (20, 200), cv2.FONT_HERSHEY_COMPLEX, textSize*2,(0, 0, 255),thickness=textThikness)  # Draws Pixel/Lengh variable on Image'
+            cv2.putText(undist, str(pixelsPerMetricUndist), (2000, 200), cv2.FONT_HERSHEY_COMPLEX, textSize*2,(0, 0, 255),thickness=textThikness)  # Draws Pixel/Lengh variable on Image'
         else:
-            cv2.putText(undist, "AruCo not correctly Detected!", (5, 25), cv2.FONT_HERSHEY_COMPLEX, 0.7, (0, 0, 255))
+            cv2.putText(undist, "AruCo not correctly Detected!", (20, 50), cv2.FONT_HERSHEY_COMPLEX, textSize, (0, 0, 255),thickness=textThikness)
         aruco.drawDetectedMarkers(imgShowCopy, corners)      #Drwas Box around Marker
         rvec, tvec, _ = aruco.estimatePoseSingleMarkers(corners, ArucoSize, meanMTX, meanDIST)  # größße des marker in m
         # rvecZeroDist, tvecZeroDist, _ = aruco.estimatePoseSingleMarkers(corners, 0.053, mtx, distZero)  # größße des marker in m
         if rvec is not None and tvec is not None:
             aruco.drawAxis(imgShowCopy, meanMTX, meanDIST, rvec, tvec, 50)     #Drwas AruCo Axis
-            cv2.putText(imgShowCopy, "%.1f cm -- %.0f deg" % ((tvec[0][0][2] /10), (rvec[0][0][2] / math.pi * 180)), (0, 230),
-                        cv2.FONT_HERSHEY_SIMPLEX, 0.7, (244, 244, 244))
+            cv2.putText(imgShowCopy, "%.1f cm -- %.0f deg" % ((tvec[0][0][2] /10), (rvec[0][0][2] / math.pi * 180)), (0, 400),
+                        cv2.FONT_HERSHEY_SIMPLEX, 15, (0, 0, 0),thickness=textThikness)
             if abs(rvec[0][0][2] / math.pi * 180) > 3:
-                cv2.putText(imgShowCopy,"Angle should be below 3 degrees!",(0, 260), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255))
+                cv2.putText(imgShowCopy,"Angle should be below 3 degrees!",(0, 260), cv2.FONT_HERSHEY_SIMPLEX, textSize, (0, 0, 255),thickness=textThikness)
             print(rvec)
             print(tvec)
         else:
             print("No Marker found")
         fps = cv2.getTickFrequency() / (cv2.getTickCount() - timer)
-        cv2.putText(undist, str(int(fps)), (2, undist.shape[0]-10), cv2.FONT_HERSHEY_COMPLEX, 0.7, (0, 255, 0))
-        cv2.putText(undist, "Press h for Help", (undist.shape[1]-145, undist.shape[0] - 5), cv2.FONT_HERSHEY_COMPLEX, 0.5, (0, 0, 255))
-        dsize = (undist.shape[1]*2, imgContours.shape[0]*2)
+        cv2.putText(undist, str((fps)), (200, undist.shape[0]-400), cv2.FONT_HERSHEY_COMPLEX, textSize, (0, 255, 0),textThikness)
+        cv2.putText(undist, "Press h for Help", (undist.shape[1]-3000, undist.shape[0] - 400), cv2.FONT_HERSHEY_COMPLEX, textSize, (0, 0, 255),thickness=textThikness)
+        dsize = (1920, 1080)
 
         # resize image
         #cv2.setMouseCallback("image", click_and_crop)
 
-        output = cv2.resize(undist, dsize, interpolation=cv2.INTER_AREA)
-        cv2.imshow(root_wind, output)       #Main Window
-        cv2.imshow("MarkerCheck", imgShowCopy)
+        outputUndist = cv2.resize(undist, dsize, interpolation=cv2.INTER_AREA)
+        outputNormal = cv2.resize(imgShowCopy,dsize,interpolation=cv2.INTER_AREA)
+        cv2.imshow(root_wind, outputUndist)       #Main Window
+        cv2.imshow("MarkerCheck", outputNormal)
         keyEvent = cv2.waitKey(1) #next imageqq
         if cv2.waitKey(1) & 0xff == ord('x'):
             break

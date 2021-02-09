@@ -6,17 +6,18 @@ def midpoint(ptA, ptB):
 
 
 def getContours(img, cThr=[100, 150], gaussFilters = 1, showFilters=False, minArea=100,epsilon = 0.01, Cornerfilter=0, draw=False):
+    minArea = minArea*10
     imgContours = img
     imgGray = cv2.cvtColor(imgContours, cv2.COLOR_BGR2GRAY)
     #img = cv2.UMat(img)
     for i in range(gaussFilters):
-       imgGray = cv2.GaussianBlur(imgGray, (3, 3),1)
-    if showFilters: cv2.imshow("Gauss",imgGray)
+       imgGray = cv2.GaussianBlur(imgGray, (11, 11),1)
+    if showFilters: cv2.imshow("Gauss",cv2.resize(imgGray,(1280,720)))
     imgCanny = cv2.Canny(imgGray, cThr[0], cThr[1])
     kernel = np.ones((3, 3))
-    imgDial = cv2.dilate(imgCanny, kernel, iterations=3)
+    imgDial = cv2.dilate(imgCanny, kernel, iterations=6)
     imgThre = cv2.erode(imgDial, kernel, iterations=2)
-    if showFilters: cv2.imshow('Canny', imgCanny)
+    if showFilters: cv2.imshow('Canny', cv2.resize(imgThre,(1280,720)))
     contours, hiearchy = cv2.findContours(imgThre, cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)
     finalCountours = []
     for i in contours:
