@@ -61,16 +61,18 @@ cv2.namedWindow(root_wind)
 def empty(a):
     pass
 slider = "Edge Detection Settings"
+filters = "Show Filters"
+cv2.namedWindow(filters)
 cv2.namedWindow(slider)
 cv2.resizeWindow("Edge Detection Settings", 640, 240)
-cv2.createTrackbar("Canny Threshold Low","Edge Detection Settings", 120, 255, empty)
-cv2.createTrackbar("Canny Threshold High","Edge Detection Settings", 160, 255, empty)
-cv2.createTrackbar("Number of Gauss Filters","Edge Detection Settings", 2, 20, empty)
-cv2.createTrackbar("Dialations","Edge Detection Settings", 6, 10, empty)
-cv2.createTrackbar("Errosions","Edge Detection Settings", 2, 10, empty)
-cv2.createTrackbar("Minimum Area of Contours","Edge Detection Settings", 800, 50000, empty)
-cv2.createTrackbar("Epsilon (Resolution of Poly Approximation)","Edge Detection Settings", 1, 40, empty)
-cv2.createTrackbar("Show Filters","Edge Detection Settings", 1, 1, empty)
+cv2.createTrackbar("Edge Thresh Low","Edge Detection Settings", 120, 255, empty)
+cv2.createTrackbar("Edge Thresh High","Edge Detection Settings", 160, 255, empty)
+cv2.createTrackbar("Gaussian's","Edge Detection Settings", 2, 20, empty)
+cv2.createTrackbar("Dilations","Edge Detection Settings", 6, 10, empty)
+cv2.createTrackbar("Erosions","Edge Detection Settings", 2, 10, empty)
+cv2.createTrackbar("minArea","Edge Detection Settings", 800, 500000, empty)
+cv2.createTrackbar("Epsilon","Edge Detection Settings", 1, 40, empty)
+cv2.createTrackbar("Show Filters","Show Filters", 1, 1, empty)
 
 ######################################################################
 
@@ -174,8 +176,8 @@ for img in images:
         cv2.putText(undist, str(pixelsPerMetricUndist), (2200, 200), cv2.FONT_HERSHEY_COMPLEX, 8,
                     (0, 0, 255), thickness=5)  # Draws Pixel/Lengh variable on Image'
     else:
-        cv2.putText(undist, "AruCo not correctly Detected!", (20, 50), cv2.FONT_HERSHEY_COMPLEX, textSize, (0, 0, 255),
-                    thickness=textThikness)
+        cv2.putText(original, "AruCo not correctly Detected!", (20, 100), cv2.FONT_HERSHEY_COMPLEX, 5, (0, 0, 255),
+                    thickness=5)
     aruco.drawDetectedMarkers(original, corners)  # Drwas Box around Marker
     rvec, tvec, _ = aruco.estimatePoseSingleMarkers(corners, ArucoSize, meanMTX, meanDIST)  # größße des marker in m
     # rvecZeroDist, tvecZeroDist, _ = aruco.estimatePoseSingleMarkers(corners, 0.053, mtx, distZero)  # größße des marker in m
