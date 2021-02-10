@@ -176,8 +176,8 @@ for img in images:
         cv2.putText(undist, str(pixelsPerMetricUndist), (2200, 200), cv2.FONT_HERSHEY_COMPLEX, 8,
                     (0, 0, 255), thickness=5)  # Draws Pixel/Lengh variable on Image'
     else:
-        cv2.putText(original, "AruCo not correctly Detected!", (20, 100), cv2.FONT_HERSHEY_COMPLEX, 5, (0, 0, 255),
-                    thickness=5)
+        cv2.putText(original, "AruCo not correctly Detected!", (500, 1000), cv2.FONT_HERSHEY_COMPLEX, 14, (0, 0, 255),
+                    thickness=14)
     aruco.drawDetectedMarkers(original, corners)  # Drwas Box around Marker
     rvec, tvec, _ = aruco.estimatePoseSingleMarkers(corners, ArucoSize, meanMTX, meanDIST)  # größße des marker in m
     # rvecZeroDist, tvecZeroDist, _ = aruco.estimatePoseSingleMarkers(corners, 0.053, mtx, distZero)  # größße des marker in m
@@ -186,23 +186,26 @@ for img in images:
         cv2.putText(original, "%.1f cm -- %.0f deg" % ((tvec[0][0][2] / 10), (rvec[0][0][2] / math.pi * 180)),
                     (0, 400),
                     cv2.FONT_HERSHEY_SIMPLEX, 15, (0, 0, 0), thickness=textThikness)
+        ################################################Select ROI###############################
+        undist, shapeROI = utils.cropImage(undist)  # Cropps out the ROI
+        cv2.destroyWindow("ROI selector")
+
+        scaleFactor1 = shapeROI[0] / 1000  # Scales ROI image in a way that it always fits on FHD Screen
+        scaleFactor2 = shapeROI[1] / 1850
+        if scaleFactor1 > scaleFactor2:
+            scaleFactor = scaleFactor1
+        else:
+            scaleFactor = scaleFactor2
+        #############################################################################
         if abs(rvec[0][0][2] / math.pi * 180) > 3:
             cv2.putText(original, "Angle should be below 3 degrees!", (0, 260), cv2.FONT_HERSHEY_SIMPLEX, textSize,
                         (0, 0, 255), thickness=textThikness)
-        # print(rvec)
-        # print(tvec)
     else:
         print("No Marker found")
+        cv2.imshow("Error",cv2.resize(original,(1920,1080)))
+        cv2.waitKey(5000)
+        break
 
-    undist,shapeROI = utils.cropImage(undist)   #Cropps out the ROI
-    cv2.destroyWindow("ROI selector")
-
-    scaleFactor1 = shapeROI[0] / 1000  # Scales ROI image in a way that it always fits on FHD Screen
-    scaleFactor2 = shapeROI[1] / 1850
-    if scaleFactor1 > scaleFactor2:
-        scaleFactor = scaleFactor1
-    else:
-        scaleFactor = scaleFactor2
 
     while True:# Loop for every Image
         imgShowCopy = original.copy()

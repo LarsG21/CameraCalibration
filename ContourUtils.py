@@ -5,8 +5,22 @@ def midpoint(ptA, ptB):
 	return ((ptA[0,0] + ptB[0,0]) * 0.5, (ptA[0,1] + ptB[0,1]) * 0.5)
 
 
-def getContours(img, cThr=[100, 150], gaussFilters = 1, showFilters=False, minArea=100,epsilon = 0.01, Cornerfilter=0, draw=False):
-    minArea = minArea*10
+def get_contours(img, cThr=[100, 150], gaussFilters = 1,dialations = 6,errsoions = 2, showFilters=False, minArea=100, epsilon = 0.01, Cornerfilter=0, draw=False):
+    """
+    Beschreibung
+
+    :param img:
+    :param cThr:
+    :param gaussFilters:
+    :param showFilters:
+    :param minArea:
+    :param epsilon:
+    :param Cornerfilter:
+    :param draw:
+    :return:
+    :rtype: bool
+    """
+    minArea = minArea/80
     imgContours = img
     #imgContoursCalc = cv2.UMat(img)
     imgGray = cv2.cvtColor(imgContours, cv2.COLOR_BGR2GRAY)
@@ -15,8 +29,8 @@ def getContours(img, cThr=[100, 150], gaussFilters = 1, showFilters=False, minAr
     if showFilters: cv2.imshow("Gauss",cv2.resize(imgGray,(1280,720)))
     imgCanny = cv2.Canny(imgGray, cThr[0], cThr[1])
     kernel = np.ones((3, 3))
-    imgDial = cv2.dilate(imgCanny, kernel, iterations=6)
-    imgThre = cv2.erode(imgDial, kernel, iterations=2)
+    imgDial = cv2.dilate(imgCanny, kernel, iterations=dialations)
+    imgThre = cv2.erode(imgDial, kernel, iterations=errsoions)
     if showFilters: cv2.imshow('Canny', cv2.resize(imgThre,(1280,720)))
     contours, hiearchy = cv2.findContours(imgThre, cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)
     finalCountours = []
@@ -33,10 +47,9 @@ def getContours(img, cThr=[100, 150], gaussFilters = 1, showFilters=False, minAr
             else:
                 finalCountours.append([len(approx), area, approx, bbox, i])
     finalCountours = sorted(finalCountours, key=lambda x: x[1], reverse=True)
-    #print('nowdraw')
+
     if draw:
         for con in finalCountours:
-            #print('contour draw')
             cv2.drawContours(imgContours, con[4], -1, (0, 0, 255), 3)
 
     if not showFilters:
