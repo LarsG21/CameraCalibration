@@ -33,8 +33,8 @@ def calibrateCamera(cap,rows,columns,squareSize,runs,saveImages = False, webcam 
     objp = np.zeros((rows * columns, 3), np.float32)
     objp[:, :2] = np.mgrid[0:columns, 0:rows].T.reshape(-1, 2) * squareSize
 
-    directory1 = "C:\\Users\\gudjons\\Desktop\\Corners\\Vorher"
-    directory2 = "C:\\Users\\gudjons\\Desktop\\Corners\\Nacher"
+    directory1 = "C:\\Users\\Lars\\Desktop\\TestBilder\\Vorher"
+    directory2 = "C:\\Users\\Lars\\Desktop\\TestBilder\\Nachher"
 
     open('repErrors.txt', 'w').close()
 
@@ -60,7 +60,7 @@ def calibrateCamera(cap,rows,columns,squareSize,runs,saveImages = False, webcam 
     meanErrorsAfter = []
 
 
-    for r in range(runs):
+    for r in range(runs):       #for every calibration run
         print('Run ', str(r+1), ' of 5')
         objpoints = []  # 3d point in real world space
         imgpoints = []  # 2d points in image plane.
@@ -78,14 +78,14 @@ def calibrateCamera(cap,rows,columns,squareSize,runs,saveImages = False, webcam 
                 if counter >9:
                     cv2.putText(img, "Press q for next step".format(counter), (5, 40), cv2.FONT_HERSHEY_COMPLEX, 0.45,(0, 0, 255))
                 else:
-                    cv2.putText(img, "Captured: {:.1f}/10".format(counter), (5, 40), cv2.FONT_HERSHEY_COMPLEX, 0.45,(0, 0, 255))
+                    cv2.putText(img, "Captured: {:.1f}/10".format(counter), (5, 40), cv2.FONT_HERSHEY_COMPLEX, 0.45, (0, 0, 255))
                 cv2.imshow("Image", img)
 
                 if cv2.waitKey(1) & 0xff == ord('x'):
                     cv2.putText(img, "Captured", (5, 70), cv2.FONT_HERSHEY_COMPLEX, 0.7, (0, 255, 0))
                     cv2.imshow("Image", img)
                     cv2.waitKey(500)
-                    images.append(img)                                  #In Array ablegen
+                    images.append(img)        #In Array ablegen
                     if saveImages:
                         utils.saveImagesToDirectory(counter,img,directory1)
                     counter += 1
@@ -149,7 +149,7 @@ def calibrateCamera(cap,rows,columns,squareSize,runs,saveImages = False, webcam 
                 imgpoints.append(corners2)
 
 
-                #cv2.waitKey(200)
+                cv2.waitKey(200)                                        #DELAY
             else:
                 print("                        No Corners Found")
 
@@ -160,7 +160,7 @@ def calibrateCamera(cap,rows,columns,squareSize,runs,saveImages = False, webcam 
         img = cv2.resize(img,dsize)
         cv2.putText(img, message, (50, 250), cv2.FONT_HERSHEY_COMPLEX, 1.2, (0, 0, 255),thickness=2)
         cv2.imshow('img', img)
-        #cv2.waitKey(2000)
+        cv2.waitKey(2000)                                                   #DELAY
         cv2.destroyWindow("img")
         ret, mtx, dist, rvecs, tvecs = cv2.calibrateCamera(objpoints, imgpoints, gray.shape[::-1],None,None)
         print('Matrix:')

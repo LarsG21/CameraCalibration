@@ -37,8 +37,8 @@ squareSize = 30#mm      Beinflusst aber in keiner weise die Matrix
 ArucoSize = 53 #in mm
 
 #Pathname for Test images
-#pathName = "C:\\Users\\Lars\\Desktop\\MessBilder\\*.TIF"   #"C:\\Users\\gudjons\\Desktop\\MessBilder\\*.TIF"
-pathName = "C:\\Users\\gudjons\\Desktop\\MessBilder\\*.TIF"
+pathName = "C:\\Users\\Lars\\Desktop\\MessBilder\\*.TIF"   #"C:\\Users\\gudjons\\Desktop\\MessBilder\\*.TIF"
+#pathName = "C:\\Users\\gudjons\\Desktop\\MessBilder\\*.TIF"
 
 saveImages = False
 undistiortTestAfterCalib = False
@@ -79,7 +79,7 @@ cv2.createTrackbar("Show Filters","Show Filters", 1, 1, empty)
 runs = 5
 if not loadSavedParameters:
     meanMTX, meanDIST, uncertaintyMTX, uncertaintyDIST = CalibrationWithUncertainty.calibrateCamera(cap=cap, rows=rows, columns=columns, squareSize=squareSize, runs=runs,
-                                                                                                    saveImages=True, webcam=webcam)
+                                                                                                    saveImages=False, webcam=webcam)
 if saveParametersPickle:
     pickle_out_MTX = open("PickleFiles/mtx.pickle","wb")
     pickle.dump(meanMTX,pickle_out_MTX)
@@ -214,13 +214,13 @@ for img in images:
         cv2.waitKey(1)
         if showConts:
 
-            cannyLow, cannyHigh, noGauss, minArea,errosions , dialations, epsilon, showFilters = gui.updateTrackBar()
+            cannyLow, cannyHigh, nrGauss, minArea, errosions , dialations, epsilon, showFilters = gui.updateTrackBar()
 
             keyEvent = cv2.waitKey(1)
             if keyEvent == ord('d'):
                 gui.resetTrackBar()
 
-            imgContours, conts = ContourUtils.get_contours(undistCopy, cThr=(cannyLow, cannyHigh), gaussFilters=noGauss,dialations=dialations,errsoions=errosions, minArea=minArea*20, epsilon=epsilon, draw=False, showFilters=showFilters)        #gets Contours from Image
+            imgContours, conts = ContourUtils.get_contours(undistCopy, cThr=(cannyLow, cannyHigh), gaussFilters=nrGauss, dialations=dialations, errsoions=errosions, minArea=minArea * 20, epsilon=epsilon, draw=False, showFilters=showFilters)        #gets Contours from Image
             if len(conts) != 0:                           #source, ThresCanny, min Cont Area, Resolution of Poly Approx(0.1 rough 0.01 fine)
                 for obj in conts:   #for every Contour
                     cv2.polylines(undistCopy, [obj[2]], True, (0, 255, 0),lineThikness)        #Approxes Contours with Polylines

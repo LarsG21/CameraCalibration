@@ -15,7 +15,7 @@ def saveImagesToDirectory(counter,img,directory):
         os.chdir(directory)
     else:
         print("ERROR: Directory not Found")
-    filename = 'savedImage' + str(counter) + '.jpg'
+    filename = 'savedImage' + str(counter) + '.TIF'
     cv2.imwrite(filename, img)  # in Ordner Speichern
     print(counter)
 
