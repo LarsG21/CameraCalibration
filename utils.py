@@ -4,6 +4,13 @@ import ContourUtils
 from scipy.spatial import distance as dist
 
 def saveImagesToDirectory(counter,img,directory):
+    """
+    Saves an image to an given directory using a counter
+    :param counter: counter needs to be increased for every new image to avoid overwriting
+    :param img: the image (np array)
+    :param directory: the desired directory (string)
+    :return: none
+    """
     if os.path.exists(directory):
         os.chdir(directory)
     else:
@@ -26,6 +33,13 @@ def saveFileToDirectory(filename,filetype,file,directory):
 
 
 def undistortFunction(img,mtx,dist):
+    """
+    undistorts an image given the camera matrix and distortion coefficients
+    :param img: the image to undistort
+    :param mtx: camera matrix (3x3) numpy array
+    :param dist: distortion vector (1x5) numpy array [k1,k2,p1,p2,k3]
+    :return: the undistorted image
+    """
     h, w = img.shape[:2]
     newcameramtx, roi = cv2.getOptimalNewCameraMatrix(mtx, dist, (w, h), 1, (w, h))
 
@@ -39,6 +53,15 @@ def undistortFunction(img,mtx,dist):
     return dst
 
 def calculatePixelsPerMetric(img,reorderd,ArucoSize,draw = True):
+    """
+    Calculates the pixels/mm in a given image with an AruCo marker (in the plane of the marker)
+    :param img: image with AruCo marker
+    :param reorderd: the reordered corner points of the marker
+    :param ArucoSize: the size of the marker in mm
+    :param draw: bool if the individual pixels/mm for x and y direction should be drawn on screen
+    :return: returns the average of pixels/mm in x and y direction
+    """
+
     (tltrX, tltrY) = ContourUtils.midpoint(reorderd[0], reorderd[1])  # top left,top right
     (blbrX, blbrY) = ContourUtils.midpoint(reorderd[2], reorderd[3])  # bottom left, botto right
     (tlblX, tlblY) = ContourUtils.midpoint(reorderd[0], reorderd[2])
@@ -55,7 +78,7 @@ def calculatePixelsPerMetric(img,reorderd,ArucoSize,draw = True):
 
     dY = dist.euclidean((tltrX, tltrY), (blbrX, blbrY))
     dX = dist.euclidean((tlblX, tlblY), (trbrX, trbrY))
-    pixelsPerMetric = (dX + dY) / 2 * (1 / ArucoSize)  # Calculates Pixels/Lenght Parameter
+    pixelsPerMetric = (dX + dY) / 2 * (1 / ArucoSize)  # Calculates Pixels/Length Parameter
     dimA = dY / pixelsPerMetric
     dimB = dX / pixelsPerMetric  # Dimention of Marker
     if draw:
@@ -71,6 +94,14 @@ def calculatePixelsPerMetric(img,reorderd,ArucoSize,draw = True):
 
 
 def undistortPicture(cap,saveImages,meanMTX,meanDIST):
+    """
+    takes an image from a webcam cap and undistorts it, optionally saves image
+    :param cap: webcam object
+    :param saveImages: bool if save or not
+    :param meanMTX: camera matrix (3x3) numpy array
+    :param meanDIST: distortion vector (1x5) numpy array [k1,k2,p1,p2,k3]
+    :return: none
+    """
     print("Take picture to undistort")
     while True:
         succsess, img = cap.read()
@@ -90,6 +121,11 @@ def undistortPicture(cap,saveImages,meanMTX,meanDIST):
         cv2.waitKey(1)
 
 def cropImage(im):
+    """
+    crops an image with a user selected ROI
+    :param im: image to crop
+    :return: the croped image
+    """
     # Read image
     scale = 0.2
     imcopy = im.copy()

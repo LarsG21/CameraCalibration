@@ -1,6 +1,10 @@
 import cv2
 
 def updateTrackBar():
+    """
+    updates the trackbars
+    :return:
+    """
     cannyLow = cv2.getTrackbarPos("Edge Thresh Low", "Edge Detection Settings")
     cannyHigh = cv2.getTrackbarPos("Edge Thresh High", "Edge Detection Settings")
     noGauss = cv2.getTrackbarPos("Gaussian's", "Edge Detection Settings")
@@ -13,6 +17,10 @@ def updateTrackBar():
     return cannyLow, cannyHigh, noGauss, minArea,errosions , dialations, epsilon, showFilters
 
 def resetTrackBar():
+    """
+    resets trackbars to default values
+    :return:
+    """
     cv2.setTrackbarPos("Edge Thresh Low", "Edge Detection Settings", 120)
     cv2.setTrackbarPos("Edge Thresh High", "Edge Detection Settings", 160)
     cv2.setTrackbarPos("Gaussian's", "Edge Detection Settings", 2)

@@ -5,7 +5,7 @@ import os
 import utils
 import math
 import ContourUtils
-import CalibrationWithUncertanty
+import CalibrationWithUncertainty
 from scipy.spatial import distance as dist
 import gui
 import matplotlib.pyplot as plt
@@ -27,8 +27,7 @@ criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 0.001)
 
 # prepare object points, like (0,0,0), (1,0,0), (2,0,0) ....,(6,5,0)
 squareSize = 30#mm      Beinflusst aber in keiner weise die Matrix
-objp = np.zeros((rows*columns,3), np.float32)
-objp[:,:2] = np.mgrid[0:columns,0:rows].T.reshape(-1,2)*squareSize
+
 #print(objp.shape)
 #print(objp[:,:2].shape)
 #print(objp[:,0])
@@ -44,7 +43,7 @@ pathName = "C:\\Users\\gudjons\\Desktop\\MessBilder\\*.TIF"
 saveImages = False
 undistiortTestAfterCalib = False
 saveParametersPickle = False
-loadSavedParameters = True
+loadSavedParameters = False
 webcam = False
 
 
@@ -79,8 +78,8 @@ cv2.createTrackbar("Show Filters","Show Filters", 1, 1, empty)
 
 runs = 5
 if not loadSavedParameters:
-    meanMTX,meanDIST,uncertantyMTX,uncertantyDIST = CalibrationWithUncertanty.calibrateCamera(cap=cap,rows=rows,columns=columns,squareSize=squareSize,objp=objp,runs=runs,
-                                                                                            saveImages=True,webcam=webcam)
+    meanMTX, meanDIST, uncertaintyMTX, uncertaintyDIST = CalibrationWithUncertainty.calibrateCamera(cap=cap, rows=rows, columns=columns, squareSize=squareSize, runs=runs,
+                                                                                                    saveImages=True, webcam=webcam)
 if saveParametersPickle:
     pickle_out_MTX = open("PickleFiles/mtx.pickle","wb")
     pickle.dump(meanMTX,pickle_out_MTX)
@@ -89,10 +88,10 @@ if saveParametersPickle:
     pickle.dump(meanDIST,pickle_out_DIST)
     pickle_out_DIST.close()
     pickle_out_MTX_Un = open("PickleFiles/uncertaintyMtx.pickle", "wb")
-    pickle.dump(uncertantyMTX, pickle_out_MTX_Un)
+    pickle.dump(uncertaintyMTX, pickle_out_MTX_Un)
     pickle_out_MTX_Un.close()
     pickle_out_DIST_Un = open("PickleFiles/uncertaintyDist.pickle", "wb")
-    pickle.dump(uncertantyDIST, pickle_out_DIST_Un)
+    pickle.dump(uncertaintyDIST, pickle_out_DIST_Un)
     pickle_out_DIST_Un.close()
     print("Parameters Saved")
 
@@ -187,7 +186,7 @@ for img in images:
                     (0, 400),
                     cv2.FONT_HERSHEY_SIMPLEX, 15, (0, 0, 0), thickness=textThikness)
         ################################################Select ROI###############################
-        undist, shapeROI = utils.cropImage(undist)  # Cropps out the ROI
+        undist, shapeROI = utils.cropImage(undist)  # Crops out the ROI
         cv2.destroyWindow("ROI selector")
 
         scaleFactor1 = shapeROI[0] / 1000  # Scales ROI image in a way that it always fits on FHD Screen

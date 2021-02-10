@@ -2,23 +2,28 @@ import cv2
 import numpy as np
 
 def midpoint(ptA, ptB):
-	return ((ptA[0,0] + ptB[0,0]) * 0.5, (ptA[0,1] + ptB[0,1]) * 0.5)
+    """
+    Calculate the midpoint of A and B
+    :param ptA: 2D numpy Array
+    :param ptB: 2D numpy Array
+    :return: 2D numpy array
+    """
+    return ((ptA[0,0] + ptB[0,0]) * 0.5, (ptA[0,1] + ptB[0,1]) * 0.5)
 
 
 def get_contours(img, cThr=[100, 150], gaussFilters = 1,dialations = 6,errsoions = 2, showFilters=False, minArea=100, epsilon = 0.01, Cornerfilter=0, draw=False):
     """
-    Beschreibung
+    gets Contours from an image
 
-    :param img:
-    :param cThr:
-    :param gaussFilters:
-    :param showFilters:
-    :param minArea:
-    :param epsilon:
-    :param Cornerfilter:
-    :param draw:
-    :return:
-    :rtype: bool
+    :param img: input image (numpy array)
+    :param cThr: thrersholds for canny edge detector (list)
+    :param gaussFilters: number of gaussian smoothing filters (int)
+    :param showFilters: boolean if you want to see the filters
+    :param minArea: minimum area of vontours to filter out small noise
+    :param epsilon: 'resolution' of polynomial approximation of the contour
+    :param Cornerfilter: Only outputs contours with n corners
+    :param draw: draws detected contours on img
+    :return: image with contours on it, (length of contour, area of contour, poly approximation, boundingbox to the contour, i)
     """
     minArea = minArea/80
     imgContours = img
@@ -58,6 +63,11 @@ def get_contours(img, cThr=[100, 150], gaussFilters = 1,dialations = 6,errsoions
     return imgContours, finalCountours
 
 def reorder(myPoints):
+    """
+    Reorders a list of corner points to: top left, top right, bottom left, bottom right
+    :param myPoints: list of points (np array)
+    :return: reordered points (np array)
+    """
     if myPoints.shape == (1,1,4,2):   #4,1,2
         myPoints = myPoints.reshape(4,1,2)
         myPointsNew = np.zeros_like(myPoints)

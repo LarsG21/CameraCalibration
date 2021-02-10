@@ -14,7 +14,25 @@ criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 60, 0.001)
 
 scale = 0.2   #Scale Factor for FindCorners in very large images
 
-def calibrateCamera(cap,rows,columns,squareSize,objp,runs,saveImages = False, webcam = True):
+def calibrateCamera(cap,rows,columns,squareSize,runs,saveImages = False, webcam = True):
+    """
+    calculates the internal camera parameters of a webcam(live) or an other camera using already taken calibration images
+    uses scaled down images for non webcam calibration and searches corners there does the subpixel optimization on the original resolution
+    saves all the reprojection errors, K matrix and uncertainty vector in repErrors.txt
+    shows parameters and errors using matplotlib
+    :param cap: webcam object
+    :param rows: rows of the calibration pattern
+    :param columns: columns of the calibration pattern
+    :param squareSize: square size of the calibration pattern
+    :param runs: how many runs of calibrations
+    :param saveImages: save calibration images
+    :param webcam: if used a webcam or images to calibrate
+    :return: mean camera matrix and distortion vector, standard deviation of matrix and vector
+    """
+
+    objp = np.zeros((rows * columns, 3), np.float32)
+    objp[:, :2] = np.mgrid[0:columns, 0:rows].T.reshape(-1, 2) * squareSize
+
     directory1 = "C:\\Users\\gudjons\\Desktop\\Corners\\Vorher"
     directory2 = "C:\\Users\\gudjons\\Desktop\\Corners\\Nacher"
 
@@ -53,7 +71,7 @@ def calibrateCamera(cap,rows,columns,squareSize,objp,runs,saveImages = False, we
         #reads in Calib Images
         if webcam:#Read in images from webcam
             while True:
-                succsess, img = cap.read()
+                success, img = cap.read()
                 cv2.putText(img, "Press x to take an image of Calicration Pattern. Take at least 10 images from different angles", (5, 20), cv2.FONT_HERSHEY_COMPLEX, 0.45, (0, 0, 255))
 
                 cv2.putText(img, "Run: {:.1f}/5".format(r+1), (210, 40), cv2.FONT_HERSHEY_COMPLEX, 0.45, (0, 0, 255))
@@ -219,11 +237,7 @@ def calibrateCamera(cap,rows,columns,squareSize,objp,runs,saveImages = False, we
     meanP1 = meanDIST[0,2]
     meanP2 = meanDIST[0,3]
     meanK3 = meanDIST[0,4]
-    #print('meanK1 ', meanDIST[0,0])
-    #print('meanK2 ', meanDIST[0,1])
-    #print('meanP1 ', meanDIST[0,2])
-    #print('meanP1 ', meanDIST[0,3])
-    #print('meanK3 ', meanDIST[0,4])
+
 
     #Konfidenzintervall 95% bei 5 Samples T- Verteilung = 1,242
 

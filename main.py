@@ -5,7 +5,7 @@ import os
 import utils
 import math
 import ContourUtils
-import CalibrationWithUncertanty
+import CalibrationWithUncertainty
 from scipy.spatial import distance as dist
 import gui
 import matplotlib.pyplot as plt
@@ -53,8 +53,6 @@ criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 0.001)
 
 # prepare object points, like (0,0,0), (1,0,0), (2,0,0) ....,(6,5,0)
 squareSize = 30#mm      Beinflusst aber in keiner weise die Matrix
-objp = np.zeros((rows*columns,3), np.float32)
-objp[:,:2] = np.mgrid[0:columns,0:rows].T.reshape(-1,2)*squareSize
 #print(objp.shape)
 #print(objp[:,:2].shape)
 #print(objp[:,0])
@@ -64,8 +62,8 @@ objp[:,:2] = np.mgrid[0:columns,0:rows].T.reshape(-1,2)*squareSize
 
 runs = 1
 if not loadSavedParameters:
-    meanMTX,meanDIST,uncertantyMTX,uncertantyDIST = CalibrationWithUncertanty.calibrateCamera(cap=cap,rows=rows,columns=columns,squareSize=squareSize,objp=objp,runs=runs,
-                                                                                            saveImages=False,webcam=webcam)
+    meanMTX,meanDIST,uncertantyMTX,uncertantyDIST = CalibrationWithUncertainty.calibrateCamera(cap=cap, rows=rows, columns=columns, squareSize=squareSize, runs=runs,
+                                                                                               saveImages=False, webcam=webcam)
 
 if saveParametersPickle:
     pickle_out_MTX = open("PickleFiles/mtx.pickle","wb")
