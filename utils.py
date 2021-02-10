@@ -89,3 +89,17 @@ def undistortPicture(cap,saveImages,meanMTX,meanDIST):
             cv2.waitKey(2000)
         cv2.waitKey(1)
 
+def cropImage(im):
+    # Read image
+    scale = 0.2
+    imcopy = im.copy()
+    resized = cv2.resize(imcopy,(int(imcopy.shape[1]*scale),int(imcopy.shape[0]*scale)))  #select in scaled image
+    # Select ROI
+    r = cv2.selectROI(resized)
+
+    # Crop image
+    imCrop = im[int(r[1]/scale):int((r[1] + r[3])/scale), int(r[0]/scale):int((r[0] + r[2])/scale)]  #acually resize the original
+    shape = imCrop.shape
+
+    # Display cropped image
+    return imCrop, shape

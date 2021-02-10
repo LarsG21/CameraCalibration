@@ -271,8 +271,11 @@ def calibrateCamera(cap,rows,columns,squareSize,objp,runs,saveImages = False, we
         file.writelines("% s\n" % data for data in books)
         file.close()
 
-    cv2.destroyAllWindows()
 
-    plt.show(block=False)
-    cv2.waitKey(8000)
+
+    while True:
+        if cv2.waitKey(1) & 0xff == ord('x'):
+            break
+        plt.show()
+    cv2.destroyAllWindows()
     return meanMTX,meanDIST,uncertantyMTX,uncertantyDIST

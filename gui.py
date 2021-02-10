@@ -4,11 +4,13 @@ def updateTrackBar():
     cannyLow = cv2.getTrackbarPos("Canny Threshold Low", "Edge Detection Settings")
     cannyHigh = cv2.getTrackbarPos("Canny Threshold High", "Edge Detection Settings")
     noGauss = cv2.getTrackbarPos("Number of Gauss Filters", "Edge Detection Settings")
+    dialations = cv2.getTrackbarPos("Dialations","Edge Detection Settings")
+    errosions = cv2.getTrackbarPos("Errosions", "Edge Detection Settings")
     minArea = cv2.getTrackbarPos("Minimum Area of Contours", "Edge Detection Settings")
     epsilon = (cv2.getTrackbarPos("Epsilon (Resolution of Poly Approximation)", "Edge Detection Settings")) / 1000
     showFilters = bool(cv2.getTrackbarPos("Show Filters", "Edge Detection Settings"))
 
-    return cannyLow, cannyHigh, noGauss, minArea, epsilon, showFilters
+    return cannyLow, cannyHigh, noGauss, minArea,errosions , dialations, epsilon, showFilters
 
 def resetTrackBar():
     cv2.setTrackbarPos("Canny Threshold Low", "Edge Detection Settings", 120)
