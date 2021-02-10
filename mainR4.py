@@ -38,13 +38,13 @@ objp[:,:2] = np.mgrid[0:columns,0:rows].T.reshape(-1,2)*squareSize
 ArucoSize = 53 #in mm
 
 #Pathname for Test images
-pathName = "C:\\Users\\gudjons\\Desktop\\MessBilder\\*.TIF"
+pathName = "C:\\Users\\Lars\\Desktop\\MessBilder\\*.TIF"   #"C:\\Users\\gudjons\\Desktop\\MessBilder\\*.TIF"
 
 
 saveImages = False
 undistiortTestAfterCalib = False
 saveParametersPickle = False
-loadSavedParameters = False
+loadSavedParameters = True
 webcam = False
 
 
@@ -211,8 +211,8 @@ for img in images:
                         cv2.FONT_HERSHEY_SIMPLEX, 15, (0, 0, 0),thickness=textThikness)
             if abs(rvec[0][0][2] / math.pi * 180) > 3:
                 cv2.putText(imgShowCopy,"Angle should be below 3 degrees!",(0, 260), cv2.FONT_HERSHEY_SIMPLEX, textSize, (0, 0, 255),thickness=textThikness)
-            print(rvec)
-            print(tvec)
+            #print(rvec)
+            #print(tvec)
         else:
             print("No Marker found")
         fps = cv2.getTickFrequency() / (cv2.getTickCount() - timer)

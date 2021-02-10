@@ -8,8 +8,8 @@ def midpoint(ptA, ptB):
 def getContours(img, cThr=[100, 150], gaussFilters = 1, showFilters=False, minArea=100,epsilon = 0.01, Cornerfilter=0, draw=False):
     minArea = minArea*10
     imgContours = img
+    #imgContoursCalc = cv2.UMat(img)
     imgGray = cv2.cvtColor(imgContours, cv2.COLOR_BGR2GRAY)
-    #img = cv2.UMat(img)
     for i in range(gaussFilters):
        imgGray = cv2.GaussianBlur(imgGray, (11, 11),1)
     if showFilters: cv2.imshow("Gauss",cv2.resize(imgGray,(1280,720)))
