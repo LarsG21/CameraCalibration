@@ -45,6 +45,7 @@ def calibrateCamera(cap,rows,columns,squareSize,runs,saveImages = False, webcam 
     print(os.path.exists(directory2))
     if not os.path.exists(directory1) or not os.path.exists(directory2):
         saveImages = False
+        print("ERROR: Path " + directory1 +" or " + directory2 + " does not exist!")
 
     allMTX = []
     allDist = []
@@ -191,10 +192,11 @@ def calibrateCamera(cap,rows,columns,squareSize,runs,saveImages = False, webcam 
 
         with open('repErrors.txt', 'a') as file:
 
-            books = ["Mean Error before calib in Run {}:\n".format(r),
+            books = ["Mean Error before calib in Run {}:".format(r),
                      str(meanErrorZeroDist),
-                     "Mean Error after calib in Run {}:\n".format(r),
+                     "Mean Error after calib in Run {}:".format(r),
                      str(mean_error),
+                     "-----------------------------------------------"
                      ]
 
             file.writelines("% s\n" % data for data in books)
@@ -272,13 +274,13 @@ def calibrateCamera(cap,rows,columns,squareSize,runs,saveImages = False, webcam 
 
     with open('repErrors.txt', 'a') as file:
 
-        books = ["MeanMTX",
+        books = ["MeanMTX:",
                  str(meanMTX),
-                 "uncertaintyMTX",
+                 "uncertaintyMTX:",
                  str(uncertantyMTX),
-                 "MeanDist",
+                 "MeanDist:",
                  str(meanDIST),
-                 "uncertaintyDist",
+                 "uncertaintyDist:",
                  str(uncertantyDIST)
                  ]
 

@@ -15,7 +15,7 @@ import glob
 
 textThikness = 1  #1
 textSize = 1     #0.7
-circleRadius = 5   #0.8
+circleRadius = 4   #0.8
 circleThikness = 3  #1
 lineThikness = 2   #1
 
@@ -37,13 +37,13 @@ squareSize = 30#mm      Beinflusst aber in keiner weise die Matrix
 ArucoSize = 53 #in mm
 
 #Pathname for Test images
-pathName = "C:\\Users\\Lars\\Desktop\\MessBilder\\*.TIF"   #"C:\\Users\\gudjons\\Desktop\\MessBilder\\*.TIF"
-#pathName = "C:\\Users\\gudjons\\Desktop\\MessBilder\\*.TIF"
+#pathName = "C:\\Users\\Lars\\Desktop\\MessBilder\\*.TIF"   #"C:\\Users\\gudjons\\Desktop\\MessBilder\\*.TIF"
+pathName = "C:\\Users\\gudjons\\Desktop\\MessBilder\\*.TIF"
 
 saveImages = False
 undistiortTestAfterCalib = False
 saveParametersPickle = False
-loadSavedParameters = False
+loadSavedParameters = True
 webcam = False
 
 
@@ -223,11 +223,11 @@ for img in images:
             imgContours, conts = ContourUtils.get_contours(undistCopy, cThr=(cannyLow, cannyHigh), gaussFilters=nrGauss, dialations=dialations, errsoions=errosions, minArea=minArea * 20, epsilon=epsilon, draw=False, showFilters=showFilters)        #gets Contours from Image
             if len(conts) != 0:                           #source, ThresCanny, min Cont Area, Resolution of Poly Approx(0.1 rough 0.01 fine)
                 for obj in conts:   #for every Contour
-                    cv2.polylines(undistCopy, [obj[2]], True, (0, 255, 0),lineThikness)        #Approxes Contours with Polylines
+                    cv2.polylines(undistCopy, [obj[2]], True, (0, 255, 0),int(lineThikness*scaleFactor))        #Approxes Contours with Polylines
                     #print("Number of PolyPoints",str(obj[0]))
                     #print(obj[2])
                     for i in range(len(obj[2])):            #for every contour in an image
-                        cv2.circle(undistCopy, (int(obj[2][i][0,0]),int(obj[2][i][0,1])), circleRadius, (255, 255, 0), circleThikness)      #draw approx Points
+                        cv2.circle(undistCopy, (int(obj[2][i][0,0]),int(obj[2][i][0,1])), int(circleRadius*scaleFactor), (255, 255, 0), int(circleThikness*scaleFactor))      #draw approx Points
                         if i == len(obj[2])-1:  #spacial Case Distance between Last and first point
                             d = dist.euclidean((obj[2][i][0, 0], obj[2][i][0, 1]), (obj[2][0][0, 0], obj[2][0][0, 1]))  #distace between points
                             (midX, midY) = ContourUtils.midpoint(obj[2][i], obj[2][0])
@@ -236,9 +236,7 @@ for img in images:
                             (midX, midY) = ContourUtils.midpoint(obj[2][i], obj[2][i + 1])
                         distance = d / pixelsPerMetricUndist
                         if putText:
-                            cv2.putText(undistCopy, "{:.1f}".format(distance),(int(midX ), int(midY)), cv2.FONT_HERSHEY_SIMPLEX,textSize, (0, 0, 255), textThikness)
-
-
+                            cv2.putText(undistCopy, "{:.1f}".format(distance),(int(midX ), int(midY)), cv2.FONT_HERSHEY_SIMPLEX,textSize*scaleFactor, (0, 0, 255), int(textThikness*scaleFactor))
 
         fps = cv2.getTickFrequency() / (cv2.getTickCount() - timer)
 
