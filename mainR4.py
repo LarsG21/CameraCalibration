@@ -54,8 +54,11 @@ cap.set(3,1080)
 
 
 #OpenCV Window GUI###############################
+mainImage = cv2.imread("mainFrame.PNG")
 root_wind = "Object measurement"
 cv2.namedWindow(root_wind)
+cv2.imshow(root_wind,mainImage)
+
 
 def empty(a):
     pass
@@ -164,10 +167,8 @@ for img in images:
     reorderdUndist = ContourUtils.reorder(cornersUndist)  # Reorders Corners TL,TR,BL,BR
 
     if reorderd is not None and reorderdUndist is not None:
-        pixelsPerMetric = utils.calculatePixelsPerMetric(original, reorderd,
-                                                         ArucoSize)  # Calculates Pixels/Metric and Drwas
-        pixelsPerMetricUndist = utils.calculatePixelsPerMetric(undist, reorderdUndist,
-                                                               ArucoSize, )  # Calculates Pixels/Metric
+        pixelsPerMetric = utils.calculatePixelsPerMetric(original, reorderd, ArucoSize)  # Calculates Pixels/Metric and Drwas
+        pixelsPerMetricUndist = utils.calculatePixelsPerMetric(undist, reorderdUndist, ArucoSize, )  # Calculates Pixels/Metric
         # cv2.putText(img, "Pixels per mm", (5, 50), cv2.FONT_HERSHEY_COMPLEX, 0.7,(0, 0, 255))  # Draws Pixel/Lengh variable on Image'
         # cv2.putText(img, str(pixelsPerMetric),(5, 75), cv2.FONT_HERSHEY_COMPLEX, 0.7, (0, 0, 255)) #Draws Pixel/Lengh variable on Image'
         cv2.putText(undist, "Pixels per mm:", (20, 200), cv2.FONT_HERSHEY_COMPLEX, 8, (0, 0, 255),
@@ -220,13 +221,16 @@ for img in images:
             if keyEvent == ord('d'):
                 gui.resetTrackBar()
 
-            imgContours, conts = ContourUtils.get_contours(undistCopy, cThr=(cannyLow, cannyHigh), gaussFilters=nrGauss, dialations=dialations, errsoions=errosions, minArea=minArea * 20, epsilon=epsilon, draw=False, showFilters=showFilters)        #gets Contours from Image
+            imgContours, conts = ContourUtils.get_contours(undistCopy,shapeROI, cThr=(cannyLow, cannyHigh), gaussFilters=nrGauss, dialations=dialations, errsoions=errosions, minArea=minArea * 20, epsilon=epsilon, draw=False, showFilters=showFilters)        #gets Contours from Image
             if len(conts) != 0:                           #source, ThresCanny, min Cont Area, Resolution of Poly Approx(0.1 rough 0.01 fine)
+
                 for obj in conts:   #for every Contour
                     cv2.polylines(undistCopy, [obj[2]], True, (0, 255, 0),int(lineThikness*scaleFactor))        #Approxes Contours with Polylines
                     #print("Number of PolyPoints",str(obj[0]))
                     #print(obj[2])
+                    colorcounter = 0
                     for i in range(len(obj[2])):            #for every contour in an image
+                        colorcounter += 10
                         cv2.circle(undistCopy, (int(obj[2][i][0,0]),int(obj[2][i][0,1])), int(circleRadius*scaleFactor), (255, 255, 0), int(circleThikness*scaleFactor))      #draw approx Points
                         if i == len(obj[2])-1:  #spacial Case Distance between Last and first point
                             d = dist.euclidean((obj[2][i][0, 0], obj[2][i][0, 1]), (obj[2][0][0, 0], obj[2][0][0, 1]))  #distace between points
@@ -236,7 +240,7 @@ for img in images:
                             (midX, midY) = ContourUtils.midpoint(obj[2][i], obj[2][i + 1])
                         distance = d / pixelsPerMetricUndist
                         if putText:
-                            cv2.putText(undistCopy, "{:.1f}".format(distance),(int(midX ), int(midY)), cv2.FONT_HERSHEY_SIMPLEX,textSize*scaleFactor, (0, 0, 255), int(textThikness*scaleFactor))
+                            cv2.putText(undistCopy, "{:.3f}".format(round(distance,3)),(int(midX), int(midY)), cv2.FONT_HERSHEY_SIMPLEX,textSize*(scaleFactor), (0, 0, 255), int(textThikness*scaleFactor/2))
 
         fps = cv2.getTickFrequency() / (cv2.getTickCount() - timer)
 

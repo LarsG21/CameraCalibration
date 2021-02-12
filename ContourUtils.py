@@ -11,7 +11,7 @@ def midpoint(ptA, ptB):
     return ((ptA[0,0] + ptB[0,0]) * 0.5, (ptA[0,1] + ptB[0,1]) * 0.5)
 
 
-def get_contours(img, cThr=[100, 150], gaussFilters = 1,dialations = 6,errsoions = 2, showFilters=False, minArea=100, epsilon = 0.01, Cornerfilter=0, draw=False):
+def get_contours(img, shapeROI, cThr=[100, 150], gaussFilters = 1,dialations = 6,errsoions = 2, showFilters=False, minArea=100, epsilon = 0.01, Cornerfilter=0, draw=False):
     """
     gets Contours from an image
 
@@ -25,18 +25,18 @@ def get_contours(img, cThr=[100, 150], gaussFilters = 1,dialations = 6,errsoions
     :param draw: draws detected contours on img
     :return: image with contours on it, (length of contour, area of contour, poly approximation, boundingbox to the contour, i)
     """
-    minArea = minArea/80
+    minArea = minArea/8000
     imgContours = img
     #imgContoursCalc = cv2.UMat(img)
     imgGray = cv2.cvtColor(imgContours, cv2.COLOR_BGR2GRAY)
     for i in range(gaussFilters):
        imgGray = cv2.GaussianBlur(imgGray, (11, 11),1)
-    if showFilters: cv2.imshow("Gauss",cv2.resize(imgGray,(1280,720)))
+    if showFilters: cv2.imshow("Gauss",cv2.resize(imgGray, (int(shapeROI[1]*2),int(shapeROI[0]*2)), interpolation=cv2.INTER_AREA))
     imgCanny = cv2.Canny(imgGray, cThr[0], cThr[1])
     kernel = np.ones((3, 3))
     imgDial = cv2.dilate(imgCanny, kernel, iterations=dialations)
     imgThre = cv2.erode(imgDial, kernel, iterations=errsoions)
-    if showFilters: cv2.imshow('Canny', cv2.resize(imgThre,(1280,720)))
+    if showFilters: cv2.imshow('Canny',cv2.resize(imgThre, (int(shapeROI[1]*2),int(shapeROI[0]*2)), interpolation=cv2.INTER_AREA))
     contours, hiearchy = cv2.findContours(imgThre, cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)
     finalCountours = []
     for i in contours:
