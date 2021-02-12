@@ -34,7 +34,7 @@ squareSize = 30#mm      Beinflusst aber in keiner weise die Matrix
 #print("2")
 #print(objp[:,1])
 
-ArucoSize = 53 #in mm
+ArucoSize = 50.5 #in mm    53mm marker alt !!!!!!!!!!
 
 #Pathname for Test images
 #pathName = "C:\\Users\\Lars\\Desktop\\MessBilder\\*.TIF"   #"C:\\Users\\gudjons\\Desktop\\MessBilder\\*.TIF"
@@ -117,7 +117,7 @@ aruco_dict = aruco.Dictionary_get(aruco.DICT_6X6_250)
 distZero = np.array([0, 0, 0, 0, 0], dtype=float)
 
 showConts = True
-putText = True
+putText = False
 pixelsPerMetric = 1
 pixelsPerMetricUndist = 1
 
@@ -240,7 +240,7 @@ for img in images:
                             (midX, midY) = ContourUtils.midpoint(obj[2][i], obj[2][i + 1])
                         distance = d / pixelsPerMetricUndist
                         if putText:
-                            cv2.putText(undistCopy, "{:.3f}".format(round(distance,3)),(int(midX), int(midY)), cv2.FONT_HERSHEY_SIMPLEX,textSize*(scaleFactor), (0, 0, 255), int(textThikness*scaleFactor/2))
+                            cv2.putText(undistCopy, "{:.3f}".format(round(distance,3)),(int(midX), int(midY)), cv2.FONT_HERSHEY_SIMPLEX,0.2, (0, 0, 255))
 
         fps = cv2.getTickFrequency() / (cv2.getTickCount() - timer)
 
