@@ -46,7 +46,7 @@ def get_contours(img, cThr=[100, 150], gaussFilters=1, dialations=6, errsoions=2
     imgThre = cv2.erode(imgDial, kernel, iterations=errsoions)
     if showFilters: cv2.imshow('Canny', cv2.resize(imgThre, (int(shapeROI[1] * 2), int(shapeROI[0] * 2)),
                                                    interpolation=cv2.INTER_AREA))
-    contours, hiearchy = cv2.findContours(imgThre, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    contours, hierarchy = cv2.findContours(imgThre, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     finalCountours = []
     for i in contours:
         area = cv2.contourArea(i)
@@ -121,13 +121,13 @@ def contour_test(image, use_gpu=True):
 
     img_gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
-    for i in range(1):
+    for i in range(100):
         img_gray = cv2.GaussianBlur(img_gray, (11, 11), 1)
 
     img_canny = cv2.Canny(img_gray, 100, 150)
     kernel = np.ones((3, 3))
     img_dial = cv2.dilate(img_canny, kernel, iterations=6)
-    img_er= cv2.erode(img_dial, kernel, iterations=2)
+    img_er = cv2.erode(img_dial, kernel, iterations=2)
 
     contours, hierachy = cv2.findContours(img_er, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
@@ -172,8 +172,8 @@ if __name__ == "__main__":
 
     # testing with gpu first
     start = timeit.default_timer()
-
-    cont = contour_test(test_image)
+    for i in range(10):
+        cont = contour_test(test_image)
 
     stop = timeit.default_timer()
     execution_time = stop - start
@@ -182,8 +182,8 @@ if __name__ == "__main__":
 
     # testing with gpu first
     start = timeit.default_timer()
-
-    cont_cpu = contour_test(test_image, use_gpu=False)
+    for i in range(10):
+        cont_cpu = contour_test(test_image, use_gpu=False)
     stop = timeit.default_timer()
     execution_time = stop - start
 
