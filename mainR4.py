@@ -117,7 +117,7 @@ aruco_dict = aruco.Dictionary_get(aruco.DICT_6X6_250)
 distZero = np.array([0, 0, 0, 0, 0], dtype=float)
 
 showConts = True
-putText = True
+putText = False
 upscale = True
 pixelsPerMetric = 1
 pixelsPerMetricUndist = 1
@@ -207,9 +207,12 @@ for img in images:
         cv2.waitKey(5000)
         break
 
+    if shapeROI[0] < 900 or shapeROI[1] < 900:
+        upscale = True
+
 
     #################################Adjust for upscaling !!!######################
-    upscaleFactor = 4
+    upscaleFactor = 2
     if upscale:
         pixelsPerMetricUndist = pixelsPerMetricUndist * upscaleFactor  #When tere are more pixels after upscale Pixels/mm is higher
         undist = cv2.resize(undist,(int(undist.shape[1] * upscaleFactor), int(undist.shape[0] * upscaleFactor)),interpolation=cv2.INTER_LINEAR)
@@ -247,7 +250,7 @@ for img in images:
                             (midX, midY) = ContourUtils.midpoint(obj[2][i], obj[2][i + 1])
                         distance = d / pixelsPerMetricUndist
                         if putText:
-                            cv2.putText(undistCopy, "{:.3f}".format(round(distance,3)),(int(midX), int(midY)), cv2.FONT_HERSHEY_SIMPLEX,0.8, (0, 0, 255))
+                            cv2.putText(undistCopy, "{:.3f}".format(round(distance,3)),(int(midX), int(midY)), cv2.FONT_HERSHEY_SIMPLEX,0.2, (0, 0, 255))
 
 
         fps = cv2.getTickFrequency() / (cv2.getTickCount() - timer)

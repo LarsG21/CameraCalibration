@@ -27,7 +27,7 @@ def get_contours(img, shapeROI, cThr=[100, 150], gaussFilters = 1,dialations = 6
     """
     minArea = minArea/8000
     imgContours = img
-    #imgContoursCalc = cv2.UMat(img)
+    imgContours = cv2.UMat(img)
     imgGray = cv2.cvtColor(imgContours, cv2.COLOR_BGR2GRAY)
     for i in range(gaussFilters):
        imgGray = cv2.GaussianBlur(imgGray, (11, 11),1)
