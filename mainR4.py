@@ -37,8 +37,8 @@ squareSize = 30#mm      Beinflusst aber in keiner weise die Matrix
 ArucoSize = 50.5 #in mm    53mm marker alt !!!!!!!!!!
 
 #Pathname for Test images
-#pathName = "C:\\Users\\Lars\\Desktop\\MessBilder\\*.TIF"   #"C:\\Users\\gudjons\\Desktop\\MessBilder\\*.TIF"
-pathName = "C:\\Users\\gudjons\\Desktop\\MessBilder\\*.TIF"
+pathName = "C:\\Users\\Lars\\Desktop\\MessBilder\\*.TIF"   #"C:\\Users\\gudjons\\Desktop\\MessBilder\\*.TIF"
+#pathName = "C:\\Users\\gudjons\\Desktop\\MessBilder\\*.TIF"
 
 saveImages = False
 undistiortTestAfterCalib = False
@@ -54,7 +54,7 @@ cap.set(3,1080)
 
 
 #OpenCV Window GUI###############################
-mainImage = cv2.imread("mainFrame.PNG")
+mainImage = cv2.imread("help.PNG")
 root_wind = "Object measurement"
 cv2.namedWindow(root_wind)
 cv2.imshow(root_wind,mainImage)
@@ -117,7 +117,8 @@ aruco_dict = aruco.Dictionary_get(aruco.DICT_6X6_250)
 distZero = np.array([0, 0, 0, 0, 0], dtype=float)
 
 showConts = True
-putText = False
+putText = True
+upscale = True
 pixelsPerMetric = 1
 pixelsPerMetricUndist = 1
 
@@ -207,12 +208,18 @@ for img in images:
         break
 
 
+    #################################Adjust for upscaling !!!######################
+    upscaleFactor = 4
+    if upscale:
+        pixelsPerMetricUndist = pixelsPerMetricUndist * upscaleFactor  #When tere are more pixels after upscale Pixels/mm is higher
+        undist = cv2.resize(undist,(int(undist.shape[1] * upscaleFactor), int(undist.shape[0] * upscaleFactor)),interpolation=cv2.INTER_LINEAR)
+    ###############################################################################
     while True:# Loop for every Image
         imgShowCopy = original.copy()
         undistCopy = undist.copy()
         timer = cv2.getTickCount()          #FPS Counter
 
-        cv2.waitKey(1)
+        #cv2.waitKey(1)
         if showConts:
 
             cannyLow, cannyHigh, nrGauss, minArea, errosions , dialations, epsilon, showFilters = gui.updateTrackBar()
@@ -240,7 +247,8 @@ for img in images:
                             (midX, midY) = ContourUtils.midpoint(obj[2][i], obj[2][i + 1])
                         distance = d / pixelsPerMetricUndist
                         if putText:
-                            cv2.putText(undistCopy, "{:.3f}".format(round(distance,3)),(int(midX), int(midY)), cv2.FONT_HERSHEY_SIMPLEX,0.2, (0, 0, 255))
+                            cv2.putText(undistCopy, "{:.3f}".format(round(distance,3)),(int(midX), int(midY)), cv2.FONT_HERSHEY_SIMPLEX,0.8, (0, 0, 255))
+
 
         fps = cv2.getTickFrequency() / (cv2.getTickCount() - timer)
 
