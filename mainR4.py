@@ -12,11 +12,52 @@ import matplotlib.pyplot as plt
 import pickle
 import glob
 
+##################################Draw Test##########################
+drawing = False
+x = 0
+y = 0
+ix = 0
+iy = 0
+x_Start = 0
+y_Start = 0
+# Adding Function Attached To Mouse Callback
+def draw(event,x,y,flags,params):
+    global ix,iy,drawing,x_Start,y_Start
+    # Left Mouse Button Down Pressed
+    if(event==cv2.EVENT_LBUTTONDOWN):
+        drawing = True
+        x_Start = x
+        y_Start = y
+        print("Assigned Start Values", y_Start*scaleFactor, x_Start*scaleFactor)
+    if(event==cv2.EVENT_MOUSEMOVE):
+        if(drawing==True):
+            #For Drawing Line
+            #cv2.line(image,pt1=(ix,iy),pt2=(x,y),color=(255,255,255),thickness=3)
+            ix = x
+            iy = y
+            # For Drawing Rectangle
+    if(event==cv2.EVENT_LBUTTONUP):
+        print("Assigned End Values", ix*scaleFactor, iy*scaleFactor)
+        cv2.rectangle(undist, pt1=(int(ix*scaleFactor), int(iy*scaleFactor)), pt2=(int(x_Start*scaleFactor), int(y_Start*scaleFactor)), color=(0, 0, 255), thickness=2)
+        #print()
+        drawing = False
+
+
+
+
+
+###########################################################
+
+
+
+
+
+
 
 textThikness = 1  #1
 textSize = 1     #0.7
 circleRadius = 4   #0.8
-circleThikness = 3  #1
+circleThikness = -1  #-1 fore filled circle
 lineThikness = 2   #1
 
 rows = 17            #17   6
@@ -57,13 +98,14 @@ cap.set(3,1080)
 mainImage = cv2.imread("help.PNG")
 root_wind = "Object measurement"
 cv2.namedWindow(root_wind)
+cv2.setMouseCallback(root_wind,draw)
 cv2.imshow(root_wind,mainImage)
 
 
 def empty(a):
     pass
 slider = "Edge Detection Settings"
-filters = "Show Filters"
+filters = "General Settings"
 cv2.namedWindow(filters)
 cv2.namedWindow(slider)
 cv2.resizeWindow("Edge Detection Settings", 640, 240)
@@ -74,7 +116,8 @@ cv2.createTrackbar("Dilations","Edge Detection Settings", 6, 10, empty)
 cv2.createTrackbar("Erosions","Edge Detection Settings", 2, 10, empty)
 cv2.createTrackbar("minArea","Edge Detection Settings", 800, 500000, empty)
 cv2.createTrackbar("Epsilon","Edge Detection Settings", 1, 40, empty)
-cv2.createTrackbar("Show Filters","Show Filters", 1, 1, empty)
+cv2.createTrackbar("Show Filters","General Settings", 1, 1, empty)
+cv2.createTrackbar("Automatic","General Settings",0,1,empty)
 
 ######################################################################
 
@@ -116,9 +159,9 @@ aruco_dict = aruco.Dictionary_get(aruco.DICT_6X6_250)
 
 distZero = np.array([0, 0, 0, 0, 0], dtype=float)
 
-showConts = True
-putText = False
-upscale = True
+automaticMode = True
+putText = True
+upscale = False
 pixelsPerMetric = 1
 pixelsPerMetricUndist = 1
 
@@ -147,7 +190,6 @@ print("loading Images...")
 images = [cv2.imread(file) for file in glob.glob(pathName)]
 
 print("showing Images...")
-
 for frame in images:  # Show Images
     dsize = (1920, 1080)
     cv2.imshow("Test", cv2.resize(frame, dsize))
@@ -207,8 +249,8 @@ for img in images:
         cv2.waitKey(5000)
         break
 
-    if shapeROI[0] < 900 or shapeROI[1] < 900:
-        upscale = True
+    if shapeROI[0] < 800 or shapeROI[1] < 800: #activate Upscale when there are few pixels
+        upscale = False
 
 
     #################################Adjust for upscaling !!!######################
@@ -222,10 +264,9 @@ for img in images:
         undistCopy = undist.copy()
         timer = cv2.getTickCount()          #FPS Counter
 
+        cannyLow, cannyHigh, nrGauss, minArea, errosions, dialations, epsilon, showFilters, automaticMode = gui.updateTrackBar()
         #cv2.waitKey(1)
-        if showConts:
-
-            cannyLow, cannyHigh, nrGauss, minArea, errosions , dialations, epsilon, showFilters = gui.updateTrackBar()
+        if automaticMode:
 
             keyEvent = cv2.waitKey(1)
             if keyEvent == ord('d'):
@@ -250,7 +291,7 @@ for img in images:
                             (midX, midY) = ContourUtils.midpoint(obj[2][i], obj[2][i + 1])
                         distance = d / pixelsPerMetricUndist
                         if putText:
-                            cv2.putText(undistCopy, "{:.3f}".format(round(distance,3)),(int(midX), int(midY)), cv2.FONT_HERSHEY_SIMPLEX,0.2, (0, 0, 255))
+                            cv2.putText(undistCopy, "{:.3f}".format(round(distance,3)),(int(midX), int(midY)), cv2.FONT_HERSHEY_SIMPLEX,textSize*scaleFactor, (0, 0, 255))
 
 
         fps = cv2.getTickFrequency() / (cv2.getTickCount() - timer)
