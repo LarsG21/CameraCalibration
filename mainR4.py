@@ -22,35 +22,32 @@ x_Start = 0
 y_Start = 0
 # Adding Function Attached To Mouse Callback
 def draw(event,x,y,flags,params):
-    global ix,iy,drawing,x_Start,y_Start
+    global ix,iy,drawing,x_Start,y_Start          #explicitly tell that they need to be global variables
     # Left Mouse Button Down Pressed
-    if(event==cv2.EVENT_LBUTTONDOWN):
+    if(event==cv2.EVENT_LBUTTONDOWN):   #save start pos of line
         drawing = True
         x_Start = x
         y_Start = y
-        print("Assigned Start Values", y_Start*scaleFactor, x_Start*scaleFactor)
+        #print("Assigned Start Values", y_Start*scaleFactor, x_Start*scaleFactor)
     if(event==cv2.EVENT_MOUSEMOVE):
-        if(drawing==True):
-            #For Drawing Line
-            #cv2.line(image,pt1=(ix,iy),pt2=(x,y),color=(255,255,255),thickness=3)
+        if(drawing==True):      #update new pos
             ix = x
             iy = y
             # For Drawing Rectangle
-    if(event==cv2.EVENT_LBUTTONUP):
-        print("Assigned End Values", ix*scaleFactor, iy*scaleFactor)
-        cv2.rectangle(undist, pt1=(int(ix*scaleFactor), int(iy*scaleFactor)), pt2=(int(x_Start*scaleFactor), int(y_Start*scaleFactor)), color=(0, 0, 255), thickness=2)
-        #print()
+    if(event==cv2.EVENT_LBUTTONUP):     #save End pos and draw
+        #print("Assigned End Values", ix*scaleFactor, iy*scaleFactor)
+        cv2.circle(undist,(int(ix*scaleFactor), int(iy*scaleFactor)),int(circleRadius*scaleFactor), (255, 255, 0), int(circleThikness*scaleFactor))     #because Lines are drawn on downscaled image always adjust for that!!
+        cv2.circle(undist, (int(x_Start * scaleFactor), int(y_Start * scaleFactor)), int(circleRadius*scaleFactor), (255, 255, 0), int(circleThikness * scaleFactor))
+        cv2.line(undist, pt1=(int(ix*scaleFactor), int(iy*scaleFactor)), pt2=(int(x_Start*scaleFactor), int(y_Start*scaleFactor)), color=(0, 255, 0), thickness=int(4*scaleFactor))
+        d = dist.euclidean((int(ix*scaleFactor), int(iy*scaleFactor)), (int(x_Start*scaleFactor), int(y_Start*scaleFactor)))    #calculate the distance in pixels
+        midX = (int(x_Start*scaleFactor) + int(ix*scaleFactor))/2
+        midY = (int(y_Start*scaleFactor)+int(iy*scaleFactor))/2         #find midpoint to writhe the number
+        distance = d / pixelsPerMetricUndist    #convert distance to mm
+        cv2.putText(undist, "{:.3f}".format(round(distance, 3)), (int(midX), int(midY)), cv2.FONT_HERSHEY_SIMPLEX,
+                    textSize * scaleFactor, (0, 0, 255),thickness=int(textThikness*scaleFactor))    #write the distance on image
         drawing = False
 
-
-
-
-
 ###########################################################
-
-
-
-
 
 
 
@@ -161,12 +158,12 @@ distZero = np.array([0, 0, 0, 0, 0], dtype=float)
 
 automaticMode = True
 putText = True
-upscale = False
+upscale = False         #Does not work together with manual masuremts !!!!!!!
 pixelsPerMetric = 1
 pixelsPerMetricUndist = 1
 
 
-############################################Dummy Save Test images from webcam!##################################
+############################################Dummy Save Test images from webcam##################################
 testing = False
 if testing:
     testCounter = 0
@@ -249,8 +246,8 @@ for img in images:
         cv2.waitKey(5000)
         break
 
-    if shapeROI[0] < 800 or shapeROI[1] < 800: #activate Upscale when there are few pixels
-        upscale = False
+    #if shapeROI[0] < 800 or shapeROI[1] < 800: #activate Upscale when there are few pixels
+    #    upscale = True
 
 
     #################################Adjust for upscaling !!!######################
