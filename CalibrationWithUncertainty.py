@@ -7,6 +7,7 @@ import math
 import ContourUtils
 import glob
 import matplotlib.pyplot as plt
+import random
 
 
 # termination criteria for Subpixel Optimization
@@ -109,7 +110,8 @@ def calibrateCamera(cap,rows,columns,squareSize,runs,saveImages = False, webcam 
 
         #findCorners
         counter2 = 0
-
+        MeanErrorDuringOneCalib = []
+        random.shuffle(images)
         for img in images:
             if not webcam:# uses a downscaled version of image to give a first guess of corners
                 original =img  #keep original
@@ -136,7 +138,7 @@ def calibrateCamera(cap,rows,columns,squareSize,runs,saveImages = False, webcam 
                         utils.saveImagesToDirectory(counter2, img, directory2)
                     counter2 += 1
                     cv2.imshow('img', img)
-                else:   #subpixeloptimizer on original image
+                else:   #subpixeloptimizer on original image when not webcam
                     corners = corners/scale     #corners must be scaled according to scale factor
                     corners2 = cv2.cornerSubPix(originalGray,corners,(11,11),(-1,-1),criteria)
                     # Draw and display the corners
@@ -149,17 +151,31 @@ def calibrateCamera(cap,rows,columns,squareSize,runs,saveImages = False, webcam 
                     cv2.imshow('img', imgShow)
                 imgpoints.append(corners2)
 
-
                 cv2.waitKey(200)                                        #DELAY
             else:
                 print("                        No Corners Found")
 
-        message = 'Found Corners in ' +str(counter2) + ' of ' + str(len(images))+ ' images'
-        print('Detect at least 10 for optimal results')
-        print(message)
+            tempret, tempmtx, tempdist, temprvecs, temptvecs = cv2.calibrateCamera(objpoints, imgpoints,
+                                                                                   gray.shape[::-1], None, None)
+            mean_error = 0
+            for i in range(len(objpoints)):
+                imgpoints2, _ = cv2.projectPoints(objpoints[i], temprvecs[i], temptvecs[i], tempmtx, tempdist)
+                error = cv2.norm(imgpoints[i], imgpoints2, cv2.NORM_L2) / len(imgpoints2)
+                mean_error += error
+                if i == 1:
+                    pass
+            mean_error = mean_error / len(objpoints)
+            print("Mean Rep  ERR after image" + str(counter2)+ " was: "+str(mean_error))
+            MeanErrorDuringOneCalib.append(round(mean_error, 10))
+
+
+
+        #message = 'Found Corners in ' +str(counter2) + ' of ' + str(len(images))+ ' images'
+        #print('Detect at least 10 for optimal results')
+        #print(message)
         dsize = (1920, 1080)
         img = cv2.resize(img,dsize)
-        cv2.putText(img, message, (50, 250), cv2.FONT_HERSHEY_COMPLEX, 1.2, (0, 0, 255),thickness=2)
+        #cv2.putText(img, message, (50, 250), cv2.FONT_HERSHEY_COMPLEX, 1.2, (0, 0, 255),thickness=2)
         cv2.imshow('img', img)
         cv2.waitKey(2000)                                                   #DELAY
         cv2.destroyWindow("img")
@@ -172,7 +188,7 @@ def calibrateCamera(cap,rows,columns,squareSize,runs,saveImages = False, webcam 
         meanErrorZeroDist = 0
         distZero = np.array([0,0,0,0,0],dtype=float)
 
-        for i in range(len(objpoints)):
+        for i in range(len(objpoints)):     #calculate rep Err
             imgpoints2, _ = cv2.projectPoints(objpoints[i], rvecs[i], tvecs[i], mtx, distZero)
             error = cv2.norm(imgpoints[i], imgpoints2, cv2.NORM_L2) / len(imgpoints2)
             meanErrorZeroDist += error

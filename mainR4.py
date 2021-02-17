@@ -72,11 +72,13 @@ squareSize = 30#mm      Beinflusst aber in keiner weise die Matrix
 #print("2")
 #print(objp[:,1])
 
-ArucoSize = 50.5 #in mm    53mm marker alt !!!!!!!!!!
+ArucoSize = 31.4       #     50.5 #in mm    53mm marker alt !!!!!!!!!!
 
 #Pathname for Test images
-pathName = "C:\\Users\\Lars\\Desktop\\MessBilder\\*.TIF"   #"C:\\Users\\gudjons\\Desktop\\MessBilder\\*.TIF"
-#pathName = "C:\\Users\\gudjons\\Desktop\\MessBilder\\*.TIF"
+#pathName = "C:\\Users\\Lars\\Desktop\\MessBilder\\*.TIF"   #"C:\\Users\\gudjons\\Desktop\\MessBilder\\*.TIF"
+pathName = "C:\\Users\\gudjons\\Desktop\\MessBilder\\*.TIF"
+
+savingDirectory = "C:\\Users\\gudjons\\Desktop\\MessBilder\\Gemessene"
 
 saveImages = False
 undistiortTestAfterCalib = False
@@ -108,14 +110,14 @@ cv2.namedWindow(slider)
 cv2.resizeWindow("Edge Detection Settings", 640, 240)
 cv2.createTrackbar("Edge Thresh Low","Edge Detection Settings", 120, 255, empty)
 cv2.createTrackbar("Edge Thresh High","Edge Detection Settings", 160, 255, empty)
-cv2.createTrackbar("Gaussian's","Edge Detection Settings", 2, 20, empty)
-cv2.createTrackbar("Dilations","Edge Detection Settings", 6, 10, empty)
-cv2.createTrackbar("Erosions","Edge Detection Settings", 2, 10, empty)
+cv2.createTrackbar("Gaussian's","Edge Detection Settings", 0, 20, empty)
+cv2.createTrackbar("Dilations","Edge Detection Settings", 0, 10, empty)
+cv2.createTrackbar("Erosions","Edge Detection Settings", 0, 10, empty)
 cv2.createTrackbar("minArea","Edge Detection Settings", 800, 500000, empty)
 cv2.createTrackbar("Epsilon","Edge Detection Settings", 1, 40, empty)
 cv2.createTrackbar("Show Filters","General Settings", 1, 1, empty)
 cv2.createTrackbar("Automatic","General Settings",0,1,empty)
-
+cv2.createTrackbar("TextSize","General Settings",100,400,empty)
 ######################################################################
 
 
@@ -158,7 +160,7 @@ distZero = np.array([0, 0, 0, 0, 0], dtype=float)
 
 automaticMode = True
 putText = True
-upscale = False         #Does not work together with manual masuremts !!!!!!!
+upscale = True         #Does not work together with manual masuremts !!!!!!!
 pixelsPerMetric = 1
 pixelsPerMetricUndist = 1
 
@@ -195,6 +197,8 @@ cv2.destroyWindow("Test")
 
 cv2.waitKey(200)
 
+savedImageCounter = 0
+
 for img in images:
     original = img              #Alwasy use original after one loop
     undist = utils.undistortFunction(original, meanMTX, meanDIST)  # Undistort Image
@@ -225,7 +229,7 @@ for img in images:
         aruco.drawAxis(original, meanMTX, meanDIST, rvec, tvec, 50)  # Drwas AruCo Axis
         cv2.putText(original, "%.1f cm -- %.0f deg" % ((tvec[0][0][2] / 10), (rvec[0][0][2] / math.pi * 180)),
                     (0, 400),
-                    cv2.FONT_HERSHEY_SIMPLEX, 15, (0, 0, 0), thickness=textThikness)
+                    cv2.FONT_HERSHEY_SIMPLEX, 15, (255, 0, 0), thickness=textThikness)
         ################################################Select ROI###############################
         undist, shapeROI = utils.cropImage(undist)  # Crops out the ROI
         cv2.destroyWindow("ROI selector")
@@ -238,7 +242,7 @@ for img in images:
             scaleFactor = scaleFactor2
         #############################################################################
         if abs(rvec[0][0][2] / math.pi * 180) > 3:
-            cv2.putText(original, "Angle should be below 3 degrees!", (0, 260), cv2.FONT_HERSHEY_SIMPLEX, textSize,
+            cv2.putText(original, "Angle should be below 3 degrees!", (0, 800), cv2.FONT_HERSHEY_SIMPLEX, 15,
                         (0, 0, 255), thickness=textThikness)
     else:
         print("No Marker found")
@@ -251,17 +255,17 @@ for img in images:
 
 
     #################################Adjust for upscaling !!!######################
-    upscaleFactor = 2
+    upscaleFactor = 4
     if upscale:
         pixelsPerMetricUndist = pixelsPerMetricUndist * upscaleFactor  #When tere are more pixels after upscale Pixels/mm is higher
-        undist = cv2.resize(undist,(int(undist.shape[1] * upscaleFactor), int(undist.shape[0] * upscaleFactor)),interpolation=cv2.INTER_LINEAR)
+        undist = cv2.resize(undist,(int(undist.shape[1] * upscaleFactor), int(undist.shape[0] * upscaleFactor)),interpolation=cv2.INTER_CUBIC)
     ###############################################################################
     while True:# Loop for every Image
         imgShowCopy = original.copy()
         undistCopy = undist.copy()
         timer = cv2.getTickCount()          #FPS Counter
 
-        cannyLow, cannyHigh, nrGauss, minArea, errosions, dialations, epsilon, showFilters, automaticMode = gui.updateTrackBar()
+        cannyLow, cannyHigh, nrGauss, minArea, errosions, dialations, epsilon, showFilters, automaticMode, textSize = gui.updateTrackBar()
         #cv2.waitKey(1)
         if automaticMode:
 
@@ -307,13 +311,21 @@ for img in images:
         cv2.imshow(root_wind,outputUndist)       #Main Window
         cv2.imshow("MarkerCheck", outputNormal)
         keyEvent = cv2.waitKey(1) #next imageqq
-        if cv2.waitKey(1) & 0xff == ord('x'):
+        if keyEvent == ord('x'):
             break
-
         elif keyEvent == ord('h'):
             print("Opening Help")
             helpimage = cv2.imread("help.PNG")
             cv2.imshow("Help",helpimage)
+        elif keyEvent == ord('s'):
+            print("Saved")
+            utils.saveImagesToDirectory(savedImageCounter,outputUndist,savingDirectory)
+            cv2.putText(outputUndist, "Saved",
+                        (200,500),
+                        cv2.FONT_HERSHEY_COMPLEX, textSize*scaleFactor, (0, 255, 0), thickness=4)
+            cv2.imshow(root_wind, outputUndist)  # Main Window
+            cv2.waitKey(200)
+            savedImageCounter +=1
         elif keyEvent == ord('q'):
             exit()
             cv2.destroyAllWindows()

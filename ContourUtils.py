@@ -25,9 +25,9 @@ def get_contours(img, shapeROI, cThr=[100, 150], gaussFilters = 1,dialations = 6
     :param draw: draws detected contours on img
     :return: image with contours on it, (length of contour, area of contour, poly approximation, boundingbox to the contour, i)
     """
-    minArea = minArea/8000
+    minArea = minArea/100000
     imgContours = img
-    imgContours = cv2.UMat(img)
+    #imgContours = cv2.UMat(img)
     imgGray = cv2.cvtColor(imgContours, cv2.COLOR_BGR2GRAY)
     for i in range(gaussFilters):
        imgGray = cv2.GaussianBlur(imgGray, (11, 11),1)

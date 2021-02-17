@@ -127,7 +127,7 @@ def cropImage(im):
     :return: the croped image
     """
     # Read image
-    scale = 0.2
+    scale = 0.15
     imcopy = im.copy()
     resized = cv2.resize(imcopy,(int(imcopy.shape[1]*scale),int(imcopy.shape[0]*scale)))  #select in scaled image
     # Select ROI

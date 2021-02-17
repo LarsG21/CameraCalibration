@@ -14,8 +14,9 @@ def updateTrackBar():
     epsilon = (cv2.getTrackbarPos("Epsilon", "Edge Detection Settings")) / 1000
     showFilters = bool(cv2.getTrackbarPos("Show Filters", "General Settings"))
     automatic = bool(cv2.getTrackbarPos("Automatic","General Settings"))
+    textsize = cv2.getTrackbarPos("TextSize","General Settings")/100
 
-    return cannyLow, cannyHigh, noGauss, minArea,errosions , dialations, epsilon, showFilters, automatic
+    return cannyLow, cannyHigh, noGauss, minArea,errosions , dialations, epsilon, showFilters, automatic, textsize
 
 def resetTrackBar():
     """
