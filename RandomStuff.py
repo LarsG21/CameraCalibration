@@ -23,4 +23,7 @@ ends = [(7,8),(9,10),(11,12)]
 distances = [1,7,12]
 
 
-utils.writeLinestoCSV(starts,ends,distances)
+#utils.writeLinestoCSV(starts,ends,distances)
+
+
+

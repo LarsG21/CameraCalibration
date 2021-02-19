@@ -7,6 +7,7 @@ import math
 import ContourUtils
 import glob
 import matplotlib.pyplot as plt
+from matplotlib.pyplot import draw
 import random
 
 testing = False
@@ -151,7 +152,7 @@ def calibrateCamera(cap,rows,columns,squareSize,runs,saveImages = False, webcam 
                     cv2.imshow('img', imgShow)
                 imgpoints.append(corners2)
 
-                cv2.waitKey(200)                                        #DELAY
+                #cv2.waitKey(200)                                        #DELAY
             else:
                 print("                        No Corners Found")
             if testing:
@@ -178,7 +179,7 @@ def calibrateCamera(cap,rows,columns,squareSize,runs,saveImages = False, webcam 
         img = cv2.resize(img,dsize)
         #cv2.putText(img, message, (50, 250), cv2.FONT_HERSHEY_COMPLEX, 1.2, (0, 0, 255),thickness=2)
         cv2.imshow('img', img)
-        cv2.waitKey(2000)                                                   #DELAY
+        #cv2.waitKey(2000)                                                   #DELAY
         cv2.destroyWindow("img")
         ret, mtx, dist, rvecs, tvecs = cv2.calibrateCamera(objpoints, imgpoints, gray.shape[::-1],None,None)
         print('Matrix:')
@@ -304,11 +305,7 @@ def calibrateCamera(cap,rows,columns,squareSize,runs,saveImages = False, webcam 
         file.writelines("% s\n" % data for data in books)
         file.close()
 
-
-
-    while True:
-        if cv2.waitKey(1) & 0xff == ord('x'):
-            break
-        plt.show()
+    plt.show()
+    cv2.waitKey(0)
     cv2.destroyAllWindows()
     return meanMTX,meanDIST,uncertantyMTX,uncertantyDIST
