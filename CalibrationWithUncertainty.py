@@ -9,7 +9,7 @@ import glob
 import matplotlib.pyplot as plt
 import random
 
-
+testing = False
 # termination criteria for Subpixel Optimization
 criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 60, 0.001)
 
@@ -154,19 +154,20 @@ def calibrateCamera(cap,rows,columns,squareSize,runs,saveImages = False, webcam 
                 cv2.waitKey(200)                                        #DELAY
             else:
                 print("                        No Corners Found")
+            if testing:
+                tempret, tempmtx, tempdist, temprvecs, temptvecs = cv2.calibrateCamera(objpoints, imgpoints,
+                                                                                       gray.shape[::-1], None, None)
 
-            tempret, tempmtx, tempdist, temprvecs, temptvecs = cv2.calibrateCamera(objpoints, imgpoints,
-                                                                                   gray.shape[::-1], None, None)
-            mean_error = 0
-            for i in range(len(objpoints)):
-                imgpoints2, _ = cv2.projectPoints(objpoints[i], temprvecs[i], temptvecs[i], tempmtx, tempdist)
-                error = cv2.norm(imgpoints[i], imgpoints2, cv2.NORM_L2) / len(imgpoints2)
-                mean_error += error
-                if i == 1:
-                    pass
-            mean_error = mean_error / len(objpoints)
-            print("Mean Rep  ERR after image" + str(counter2)+ " was: "+str(mean_error))
-            MeanErrorDuringOneCalib.append(round(mean_error, 10))
+                mean_error = 0
+                for i in range(len(objpoints)):
+                    imgpoints2, _ = cv2.projectPoints(objpoints[i], temprvecs[i], temptvecs[i], tempmtx, tempdist)
+                    error = cv2.norm(imgpoints[i], imgpoints2, cv2.NORM_L2) / len(imgpoints2)
+                    mean_error += error
+                    if i == 1:
+                        pass
+                mean_error = mean_error / len(objpoints)
+                print("Mean Rep  ERR after image" + str(counter2)+ " was: "+str(mean_error))
+                MeanErrorDuringOneCalib.append(round(mean_error, 10))
 
 
 

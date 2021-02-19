@@ -1,6 +1,8 @@
 import cv2
 import os
 import ContourUtils
+import csv
+from datetime import datetime
 from scipy.spatial import distance as dist
 
 def saveImagesToDirectory(counter,img,directory):
@@ -11,14 +13,15 @@ def saveImagesToDirectory(counter,img,directory):
     :param directory: the desired directory (string)
     :return: none
     """
+    owd = os.getcwd()       #save original directory
     if os.path.exists(directory):
-        os.chdir(directory)
+        os.chdir(directory)     #change working directory
     else:
         print("ERROR: Directory not Found")
     filename = 'savedImage' + str(counter) + '.TIF'
     cv2.imwrite(filename, img)  # in Ordner Speichern
     print(counter)
-
+    os.chdir(owd)       #go back to original directory
 
 
 def saveFileToDirectory(filename,filetype,file,directory):
@@ -139,3 +142,19 @@ def cropImage(im):
 
     # Display cropped image
     return imCrop, shape
+
+def writeLinestoCSV(startPointList, endPointList, distanceList):
+    """
+    Writes lists of startingpoints distances and endpoints to a csv file
+    :param startPointList: lists of startingpoints
+    :param endPointList: lists of endpoints
+    :param distanceList: lists of distances
+    :return:
+    """
+    filename = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
+    with open('Results/'+filename+'.csv', 'w', newline='') as csvfile:
+        spamwriter = csv.writer(csvfile, delimiter=';',
+                                quotechar='|', quoting=csv.QUOTE_MINIMAL)
+        spamwriter.writerow(["point1", "distance", "point2"])
+        for (point1,distance,point2) in zip(startPointList,distanceList,endPointList):
+            spamwriter.writerow([point1,round(distance,6),point2])

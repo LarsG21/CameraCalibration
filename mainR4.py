@@ -13,6 +13,10 @@ import pickle
 import glob
 
 ##################################Draw Test##########################
+startPointList = []
+endPointList = []
+distanceList = []
+
 drawing = False
 x = 0
 y = 0
@@ -39,7 +43,10 @@ def draw(event,x,y,flags,params):
         cv2.circle(undist,(int(ix*scaleFactor), int(iy*scaleFactor)),int(circleRadius*scaleFactor), (255, 255, 0), int(circleThikness*scaleFactor))     #because Lines are drawn on downscaled image always adjust for that!!
         cv2.circle(undist, (int(x_Start * scaleFactor), int(y_Start * scaleFactor)), int(circleRadius*scaleFactor), (255, 255, 0), int(circleThikness * scaleFactor))
         cv2.line(undist, pt1=(int(ix*scaleFactor), int(iy*scaleFactor)), pt2=(int(x_Start*scaleFactor), int(y_Start*scaleFactor)), color=(0, 255, 0), thickness=int(4*scaleFactor))
+        startPointList.append((x_Start,y_Start))
+        endPointList.append((ix,iy))
         d = dist.euclidean((int(ix*scaleFactor), int(iy*scaleFactor)), (int(x_Start*scaleFactor), int(y_Start*scaleFactor)))    #calculate the distance in pixels
+        distanceList.append(d)
         midX = (int(x_Start*scaleFactor) + int(ix*scaleFactor))/2
         midY = (int(y_Start*scaleFactor)+int(iy*scaleFactor))/2         #find midpoint to writhe the number
         distance = d / pixelsPerMetricUndist    #convert distance to mm
@@ -94,11 +101,29 @@ cap.set(3,1080)
 
 
 #OpenCV Window GUI###############################
-mainImage = cv2.imread("help.PNG")
+mainImage = cv2.imread("Recources/Main Frame.PNG")
 root_wind = "Object measurement"
 cv2.namedWindow(root_wind)
 cv2.setMouseCallback(root_wind,draw)
 cv2.imshow(root_wind,mainImage)
+
+
+#################################Program Starting Screen#####################################
+keyEvent = cv2.waitKey(0) #next imageqq
+if keyEvent == ord('1'):            #calibrate and save
+    saveParametersPickle = True
+    loadSavedParameters = False
+elif keyEvent == ord('2'):          #just calibrate
+    saveParametersPickle = False
+    loadSavedParameters = False
+elif keyEvent == ord('3'):      #masure
+    saveParametersPickle = False
+    loadSavedParameters = True
+elif keyEvent == ord('q'):
+    exit()
+else:
+    cv2.waitKey(1)
+
 
 
 def empty(a):
@@ -160,7 +185,7 @@ distZero = np.array([0, 0, 0, 0, 0], dtype=float)
 
 automaticMode = True
 putText = True
-upscale = True         #Does not work together with manual masuremts !!!!!!!
+upscale = False         #Does not work together with manual masuremts !!!!!!!
 pixelsPerMetric = 1
 pixelsPerMetricUndist = 1
 
@@ -319,6 +344,10 @@ for img in images:
             cv2.imshow("Help",helpimage)
         elif keyEvent == ord('s'):
             print("Saved")
+            utils.writeLinestoCSV(startPointList, endPointList, distanceList)
+            startPointList.clear()
+            endPointList.clear()
+            distanceList.clear()
             utils.saveImagesToDirectory(savedImageCounter,outputUndist,savingDirectory)
             cv2.putText(outputUndist, "Saved",
                         (200,500),
