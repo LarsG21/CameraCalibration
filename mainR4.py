@@ -62,7 +62,7 @@ textThikness = 1  #1
 textSize = 1     #0.7
 circleRadius = 4   #0.8
 circleThikness = -1  #-1 fore filled circle
-lineThikness = 2   #1
+lineThikness = 1   #1
 
 rows = 17            #17   6
 columns = 28         #28    9
@@ -79,18 +79,18 @@ squareSize = 30#mm      Beinflusst aber in keiner weise die Matrix
 #print("2")
 #print(objp[:,1])
 
-ArucoSize = 31.4       #     50.5 #in mm    53mm marker alt !!!!!!!!!!
+ArucoSize = 31.4       #     50.5 #in mm    53mm marker alt !!!!!
 
 #Pathname for Test images
-#pathName = "C:\\Users\\Lars\\Desktop\\MessBilder\\*.TIF"   #"C:\\Users\\gudjons\\Desktop\\MessBilder\\*.TIF"
-pathName = "C:\\Users\\gudjons\\Desktop\\MessBilder\\*.TIF"
+pathName = "C:\\Users\\Lars\\Desktop\\MessBilder\\*.TIF"   #"C:\\Users\\gudjons\\Desktop\\MessBilder\\*.TIF"
+#pathName = "C:\\Users\\gudjons\\Desktop\\MessBilder\\*.TIF"
 
 savingDirectory = "C:\\Users\\gudjons\\Desktop\\MessBilder\\Gemessene"
 
 saveImages = False
 undistiortTestAfterCalib = False
 saveParametersPickle = False
-loadSavedParameters = True
+loadSavedParameters = False
 webcam = False
 
 
@@ -146,7 +146,7 @@ cv2.createTrackbar("TextSize","General Settings",100,400,empty)
 ######################################################################
 
 
-runs = 5
+runs = 1
 if not loadSavedParameters:
     meanMTX, meanDIST, uncertaintyMTX, uncertaintyDIST = CalibrationWithUncertainty.calibrateCamera(cap=cap, rows=rows, columns=columns, squareSize=squareSize, runs=runs,
                                                                                                     saveImages=False, webcam=webcam)

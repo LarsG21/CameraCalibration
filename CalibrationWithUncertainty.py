@@ -6,9 +6,10 @@ import utils
 import math
 import ContourUtils
 import glob
+import matplotlib
 import matplotlib.pyplot as plt
-from matplotlib.pyplot import draw
 import random
+from scipy.interpolate import griddata
 
 testing = False
 # termination criteria for Subpixel Optimization
@@ -55,6 +56,7 @@ def calibrateCamera(cap,rows,columns,squareSize,runs,saveImages = False, webcam 
 
     fig, ax = plt.subplots()   #Plot for Rep Error
     fig2, ax2 = plt.subplots()  # Plot for K
+    fig3, ax3 = plt.subplots()  #Plot for heatmap
 
     N = 5
     X_Axis = np.arange(N)
@@ -62,6 +64,9 @@ def calibrateCamera(cap,rows,columns,squareSize,runs,saveImages = False, webcam 
     meanErrorsBefore = []
     meanErrorsAfter = []
 
+    allpoints = []
+    allErrors = []
+    first = True
 
     for r in range(runs):       #for every calibration run
         print('Run ', str(r+1), ' of 5')
@@ -112,6 +117,7 @@ def calibrateCamera(cap,rows,columns,squareSize,runs,saveImages = False, webcam 
         #findCorners
         counter2 = 0
         MeanErrorDuringOneCalib = []
+        PlaceholderList = []
         random.shuffle(images)
         for img in images:
             if not webcam:# uses a downscaled version of image to give a first guess of corners
@@ -158,7 +164,6 @@ def calibrateCamera(cap,rows,columns,squareSize,runs,saveImages = False, webcam 
             if testing:
                 tempret, tempmtx, tempdist, temprvecs, temptvecs = cv2.calibrateCamera(objpoints, imgpoints,
                                                                                        gray.shape[::-1], None, None)
-
                 mean_error = 0
                 for i in range(len(objpoints)):
                     imgpoints2, _ = cv2.projectPoints(objpoints[i], temprvecs[i], temptvecs[i], tempmtx, tempdist)
@@ -169,8 +174,9 @@ def calibrateCamera(cap,rows,columns,squareSize,runs,saveImages = False, webcam 
                 mean_error = mean_error / len(objpoints)
                 print("Mean Rep  ERR after image" + str(counter2)+ " was: "+str(mean_error))
                 MeanErrorDuringOneCalib.append(round(mean_error, 10))
+                PlaceholderList.append(counter2)
 
-
+        #utils.writeLinestoCSV(PlaceholderList,MeanErrorDuringOneCalib,PlaceholderList)
 
         #message = 'Found Corners in ' +str(counter2) + ' of ' + str(len(images))+ ' images'
         #print('Detect at least 10 for optimal results')
@@ -189,7 +195,7 @@ def calibrateCamera(cap,rows,columns,squareSize,runs,saveImages = False, webcam 
         mean_error = 0
         meanErrorZeroDist = 0
         distZero = np.array([0,0,0,0,0],dtype=float)
-
+        distCustom = np.array([-0.3635,0.14126,0.00209,-0.000267],dtype=float)
         for i in range(len(objpoints)):     #calculate rep Err
             imgpoints2, _ = cv2.projectPoints(objpoints[i], rvecs[i], tvecs[i], mtx, distZero)
             error = cv2.norm(imgpoints[i], imgpoints2, cv2.NORM_L2) / len(imgpoints2)
@@ -199,13 +205,33 @@ def calibrateCamera(cap,rows,columns,squareSize,runs,saveImages = False, webcam 
         print("Mean error between Ideal Chessboard Corners and Image Corners: {}".format(meanErrorZeroDist))
         for i in range(len(objpoints)):
             imgpoints2, _ = cv2.projectPoints(objpoints[i], rvecs[i], tvecs[i], mtx, dist)
-            error = cv2.norm(imgpoints[i], imgpoints2, cv2.NORM_L2) / len(imgpoints2)
+            error = cv2.norm(imgpoints[i], imgpoints2, cv2.NORM_L2) / len(imgpoints2)       #imagepoints = corners on images
+            for j in range(len(imgpoints2)):                                                #imagepoints2 = reprojected ideal chsessboard corners to image
+                if np.linalg.norm(imgpoints2[j]-imgpoints[i][j]) < 100:
+                    allErrors.append(np.linalg.norm(imgpoints2[j]-imgpoints[i][j]))
+                else:
+                    allErrors.append(100)
+            if first:
+                allpoints = imgpoints2
+                first = False
+            else:
+                allpoints = np.concatenate((allpoints,imgpoints2))
+            print("Das ist ein error")
+            #print(allErrors)
+            print(len(allErrors))
+            print("Zum Punkt")
+            print(len(allpoints))
+            print(allpoints.shape)
+            #print(allpoints)
+            #cv2.waitKey(2000)
+            print("################################")
             mean_error += error
             if i == 1:
                 pass
         mean_error = mean_error / len(objpoints)
         meanErrorsAfter.append(round(mean_error, 10))
         print("Mean error between projected Objecktpoints using distortion parameters to Points in real Image: {}".format(mean_error))
+
 
 
         with open('repErrors.txt', 'a') as file:
@@ -221,6 +247,24 @@ def calibrateCamera(cap,rows,columns,squareSize,runs,saveImages = False, webcam 
             file.close()
         allMTX.append(mtx)
         allDist.append(dist)
+    ##################################Heatmap###############################
+    #xi = np.arange(0, 9800, 1)
+    #yi = np.arange(0,6600,1)
+    #xi, yi = np.meshgrid(xi, yi)
+
+    #mask = (xi > 0.5) & (xi < 0.6) & (yi > 0.5) & (yi < 0.6)
+
+    #zi = griddata((np.array(allpoints[:,:,0]), np.array(allpoints[:,:,1])), np.array(allErrors), (xi, yi), method='linear')
+
+    #zi[mask] = np.nan
+
+    #plt.contourf(xi, yi, zi, np.arange(0, 1.01, 0.01))
+
+    ax3.set_title('Reprojection Error Heatmap')
+    sc = ax3.scatter(allpoints[:,:,0],allpoints[:,:,1],c=allErrors, cmap='turbo', edgecolor='k',marker='+')
+    cbar = plt.colorbar(sc, orientation='horizontal')
+    cbar.ax.set_xlabel("Reprojection Error [Pixel]")
+
 
     #########################Plot Projection Errors######################################
     rects1 = ax.bar(X_Axis, tuple(meanErrorsBefore), width, color='r')
@@ -305,7 +349,11 @@ def calibrateCamera(cap,rows,columns,squareSize,runs,saveImages = False, webcam 
         file.writelines("% s\n" % data for data in books)
         file.close()
 
-    plt.show()
-    cv2.waitKey(0)
+
+
+    while True:
+        if cv2.waitKey(1) & 0xff == ord('x'):
+            break
+        plt.show()
     cv2.destroyAllWindows()
     return meanMTX,meanDIST,uncertantyMTX,uncertantyDIST
