@@ -85,7 +85,7 @@ ArucoSize = 31.4       #     50.5 #in mm    53mm marker alt !!!!!
 pathName = "C:\\Users\\Lars\\Desktop\\MessBilder\\*.TIF"   #"C:\\Users\\gudjons\\Desktop\\MessBilder\\*.TIF"
 #pathName = "C:\\Users\\gudjons\\Desktop\\MessBilder\\*.TIF"
 
-savingDirectory = "C:\\Users\\gudjons\\Desktop\\MessBilder\\Gemessene"
+savingDirectory = "C:\\Users\\Lars\\Desktop\\MessBilder\\Gemessene"
 
 saveImages = False
 undistiortTestAfterCalib = False

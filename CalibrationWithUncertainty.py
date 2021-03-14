@@ -204,7 +204,7 @@ def calibrateCamera(cap,rows,columns,squareSize,runs,saveImages = False, webcam 
         meanErrorsBefore.append(round(meanErrorZeroDist, 10))
         print("Mean error between Ideal Chessboard Corners and Image Corners: {}".format(meanErrorZeroDist))
         for i in range(len(objpoints)):
-            imgpoints2, _ = cv2.projectPoints(objpoints[i], rvecs[i], tvecs[i], mtx, dist)
+            imgpoints2, _ = cv2.projectPoints(objpoints[i], rvecs[i], tvecs[i], mtx, distZero)
             error = cv2.norm(imgpoints[i], imgpoints2, cv2.NORM_L2) / len(imgpoints2)       #imagepoints = corners on images
             for j in range(len(imgpoints2)):                                                #imagepoints2 = reprojected ideal chsessboard corners to image
                 if np.linalg.norm(imgpoints2[j]-imgpoints[i][j]) < 100:
@@ -259,11 +259,13 @@ def calibrateCamera(cap,rows,columns,squareSize,runs,saveImages = False, webcam 
     #zi[mask] = np.nan
 
     #plt.contourf(xi, yi, zi, np.arange(0, 1.01, 0.01))
-
+    print("max:", max(allErrors))
     ax3.set_title('Reprojection Error Heatmap')
+    ax3.set_xlabel(xlabel='X Position (Pixel)')
+    ax3.set_ylabel(ylabel='Y Position (Pixel)')
     sc = ax3.scatter(allpoints[:,:,0],allpoints[:,:,1],c=allErrors, cmap='turbo', edgecolor='k',marker='+')
-    cbar = plt.colorbar(sc, orientation='horizontal')
-    cbar.ax.set_xlabel("Reprojection Error [Pixel]")
+    cbar = plt.colorbar(sc, orientation='vertical')
+    cbar.ax.set_xlabel("Error (Pixel)")
 
 
     #########################Plot Projection Errors######################################
