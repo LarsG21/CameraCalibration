@@ -291,6 +291,8 @@ for img in images:
         timer = cv2.getTickCount()          #FPS Counter
 
         cannyLow, cannyHigh, nrGauss, minArea, errosions, dialations, epsilon, showFilters, automaticMode, textSize = gui.updateTrackBar()
+        showFilters = True
+        automaticMode = True
         #cv2.waitKey(1)
         if automaticMode:
 

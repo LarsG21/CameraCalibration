@@ -31,12 +31,12 @@ def get_contours(img, shapeROI, cThr=[100, 150], gaussFilters = 1,dialations = 6
     imgGray = cv2.cvtColor(imgContours, cv2.COLOR_BGR2GRAY)
     for i in range(gaussFilters):
        imgGray = cv2.GaussianBlur(imgGray, (11, 11),1)
-    if showFilters: cv2.imshow("Gauss",cv2.resize(imgGray, (int(shapeROI[1]*2),int(shapeROI[0]*2)), interpolation=cv2.INTER_AREA))
+    if showFilters: cv2.imshow("Gauss",cv2.resize(imgGray, (int(shapeROI[1]),int(shapeROI[0])), interpolation=cv2.INTER_AREA))
     imgCanny = cv2.Canny(imgGray, cThr[0], cThr[1])
     kernel = np.ones((3, 3))
     imgDial = cv2.dilate(imgCanny, kernel, iterations=dialations)
     imgThre = cv2.erode(imgDial, kernel, iterations=errsoions)
-    if showFilters: cv2.imshow('Canny',cv2.resize(imgThre, (int(shapeROI[1]*2),int(shapeROI[0]*2)), interpolation=cv2.INTER_AREA))
+    if showFilters: cv2.imshow('Canny',cv2.resize(imgThre, (int(shapeROI[1]),int(shapeROI[0])), interpolation=cv2.INTER_AREA))
     contours, hiearchy = cv2.findContours(imgThre, cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)
     finalCountours = []
     for i in contours:
