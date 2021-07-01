@@ -66,7 +66,7 @@ def undistortFunction(img,mtx,dist):
     # crop the image
     x,y,w,h = roi
     dst = dst[y:y+h, x:x+w]
-    cv2.imwrite('calibresult.png',dst)
+    cv2.imwrite('../calibresult.png', dst)
     return dst
 
 def calibrate_camera(allCorners,allIds,imsize):

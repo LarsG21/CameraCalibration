@@ -82,7 +82,7 @@ squareSize = 30#mm      Beinflusst aber in keiner weise die Matrix
 ArucoSize = 31.4       #     50.5 #in mm    53mm marker alt !!!!!
 
 #Pathname for Test images
-pathName = "C:\\Users\\Lars\\Desktop\\MessBilder\\*.TIF"   #"C:\\Users\\gudjons\\Desktop\\MessBilder\\*.TIF"
+pathName = "C:\\Users\\Lars\\Desktop\\MessBilder\\*.TIF"
 #pathName = "C:\\Users\\gudjons\\Desktop\\MessBilder\\*.TIF"
 
 savingDirectory = "C:\\Users\\Lars\\Desktop\\MessBilder\\Gemessene"
@@ -90,7 +90,7 @@ savingDirectory = "C:\\Users\\Lars\\Desktop\\MessBilder\\Gemessene"
 saveImages = False
 undistiortTestAfterCalib = False
 saveParametersPickle = False
-loadSavedParameters = False
+loadSavedParameters = True
 webcam = False
 
 
@@ -132,17 +132,20 @@ slider = "Edge Detection Settings"
 filters = "General Settings"
 cv2.namedWindow(filters)
 cv2.namedWindow(slider)
+cv2.resizeWindow("General Settings",400,100)
 cv2.resizeWindow("Edge Detection Settings", 640, 240)
 cv2.createTrackbar("Edge Thresh Low","Edge Detection Settings", 120, 255, empty)
 cv2.createTrackbar("Edge Thresh High","Edge Detection Settings", 160, 255, empty)
-cv2.createTrackbar("Gaussian's","Edge Detection Settings", 0, 20, empty)
-cv2.createTrackbar("Dilations","Edge Detection Settings", 0, 10, empty)
-cv2.createTrackbar("Erosions","Edge Detection Settings", 0, 10, empty)
+cv2.createTrackbar("Gaussian's","Edge Detection Settings", 1, 20, empty)
+cv2.createTrackbar("Dilations","Edge Detection Settings", 1, 10, empty)
+cv2.createTrackbar("Erosions","Edge Detection Settings", 1, 10, empty)
 cv2.createTrackbar("minArea","Edge Detection Settings", 800, 500000, empty)
-cv2.createTrackbar("Epsilon","Edge Detection Settings", 1, 40, empty)
+cv2.createTrackbar("Epsilon","Edge Detection Settings", 5, 40, empty)
 cv2.createTrackbar("Show Filters","General Settings", 1, 1, empty)
 cv2.createTrackbar("Automatic","General Settings",0,1,empty)
 cv2.createTrackbar("TextSize","General Settings",100,400,empty)
+
+
 ######################################################################
 
 
@@ -291,8 +294,6 @@ for img in images:
         timer = cv2.getTickCount()          #FPS Counter
 
         cannyLow, cannyHigh, nrGauss, minArea, errosions, dialations, epsilon, showFilters, automaticMode, textSize = gui.updateTrackBar()
-        showFilters = True
-        automaticMode = True
         #cv2.waitKey(1)
         if automaticMode:
 

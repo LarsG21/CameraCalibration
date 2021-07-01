@@ -13,20 +13,20 @@ import pickle
 import glob
 
 
-cap = cv2.VideoCapture(1)
+cap = cv2.VideoCapture(0)
 
 cap.set(2,1920)
 cap.set(3,1080)
 
-rows = 17            #17
-columns = 28         #28
+rows = 6            #17
+columns = 9         #28
 
 ArucoSize = 53 #in mm
 
 saveImages = False
 undistiortTestAfterCalib = False
 saveParametersPickle = False
-loadSavedParameters = False
+loadSavedParameters = True
 webcam = True
 
 #OpenCV Window GUI###############################
@@ -111,13 +111,13 @@ while True:
     cornersUndist, idsUndist, rejectedImgPointsUndist = aruco.detectMarkers(undist, aruco_dict)  # Detects AruCo Marker in Image
     if showConts:
 
-        cannyLow, cannyHigh, noGauss, minArea, epsilon, showFilters = gui.updateTrackBar()
+        cannyLow, cannyHigh, noGauss, minArea, errosions, dialations, epsilon, showFilters, automaticMode, textSize = gui.updateTrackBar()
 
         keyEvent = cv2.waitKey(1)
         if keyEvent == ord('d'):
             gui.resetTrackBar()
 
-        imgContours, conts = ContourUtils.get_contours(undist, cThr=(cannyLow, cannyHigh), gaussFilters=noGauss, minArea=minArea, epsilon=epsilon, draw=False, showFilters=showFilters)        #gets Contours from Image
+        imgContours, conts = ContourUtils.get_contours(undist, cThr=(cannyLow, cannyHigh), gaussFilters=noGauss, minArea=minArea, epsilon=epsilon, draw=False, showFilters=False)        #gets Contours from Image
         if len(conts) != 0:                           #source, ThresCanny, min Cont Area, Resolution of Poly Approx(0.1 rough 0.01 fine)
             for obj in conts:   #for every Contour
                 cv2.polylines(undist, [obj[2]], True, (0, 255, 0), 1)        #Approxes Contours with Polylines

@@ -53,10 +53,10 @@ def calibrateCamera(cap,rows,columns,squareSize,runs,saveImages = False, webcam 
     allMTX = []
     allDist = []
     allRepErr = []
-
-    fig, ax = plt.subplots()   #Plot for Rep Error
-    fig2, ax2 = plt.subplots()  # Plot for K
-    fig3, ax3 = plt.subplots()  #Plot for heatmap
+    if testing:
+        fig, ax = plt.subplots()   #Plot for Rep Error
+        fig2, ax2 = plt.subplots()  # Plot for K
+        fig3, ax3 = plt.subplots()  #Plot for heatmap
 
     N = 5
     X_Axis = np.arange(N)
@@ -259,27 +259,28 @@ def calibrateCamera(cap,rows,columns,squareSize,runs,saveImages = False, webcam 
     #zi[mask] = np.nan
 
     #plt.contourf(xi, yi, zi, np.arange(0, 1.01, 0.01))
-    print("max:", max(allErrors))
-    ax3.set_title('Reprojection Error Heatmap')
-    ax3.set_xlabel(xlabel='X Position (Pixel)')
-    ax3.set_ylabel(ylabel='Y Position (Pixel)')
-    sc = ax3.scatter(allpoints[:,:,0],allpoints[:,:,1],c=allErrors, cmap='turbo', edgecolor='k',marker='+')
-    cbar = plt.colorbar(sc, orientation='vertical')
-    cbar.ax.set_xlabel("Error (Pixel)")
+    if testing:
+        print("max:", max(allErrors))
+        ax3.set_title('Reprojection Error Heatmap')
+        ax3.set_xlabel(xlabel='X Position (Pixel)')
+        ax3.set_ylabel(ylabel='Y Position (Pixel)')
+        sc = ax3.scatter(allpoints[:,:,0],allpoints[:,:,1],c=allErrors, cmap='turbo', edgecolor='k',marker='+')
+        cbar = plt.colorbar(sc, orientation='vertical')
+        cbar.ax.set_xlabel("Error (Pixel)")
 
 
     #########################Plot Projection Errors######################################
-    rects1 = ax.bar(X_Axis, tuple(meanErrorsBefore), width, color='r')
-    rects2 = ax.bar(X_Axis+width, tuple(meanErrorsAfter), width, color='g')
+        rects1 = ax.bar(X_Axis, tuple(meanErrorsBefore), width, color='r')
+        rects2 = ax.bar(X_Axis+width, tuple(meanErrorsAfter), width, color='g')
 
-    ax.set_ylabel('Reprojectio Error')
-    ax.set_title('Before and after Calibration')
-    ax.set_xticks(X_Axis + width / 2)
-    ax.set_xticklabels(('Run1', 'Run2', 'Run3', 'Run4', 'Run5'))
+        ax.set_ylabel('Reprojectio Error')
+        ax.set_title('Before and after Calibration')
+        ax.set_xticks(X_Axis + width / 2)
+        ax.set_xticklabels(('Run1', 'Run2', 'Run3', 'Run4', 'Run5'))
 
-    ax.legend((rects1[0], rects2[0]), ('before calibration', 'after calibration'))
+        ax.legend((rects1[0], rects2[0]), ('before calibration', 'after calibration'))
 
-    plt.draw()
+        plt.draw()
     #####################################################################################
     MTXStack = np.stack(allMTX,axis=1)
     meanMTX = np.mean(MTXStack,axis=1)
@@ -313,13 +314,14 @@ def calibrateCamera(cap,rows,columns,squareSize,runs,saveImages = False, webcam 
     print((uncertantyMTX[0,0], uncertantyMTX[1,1], uncertantyMTX[0,2], uncertantyMTX[1,2]))
 
     #########################Plot Internal Camera Parameters######################################
-    rects1 = ax2.bar(np.arange(4), (meanFx, meanFy, meanX0, meanY0), width, color='r', yerr=(uncertantyMTX[0,0], uncertantyMTX[1,1], uncertantyMTX[0,2], uncertantyMTX[1,2]))
+    if testing:
+        rects1 = ax2.bar(np.arange(4), (meanFx, meanFy, meanX0, meanY0), width, color='r', yerr=(uncertantyMTX[0,0], uncertantyMTX[1,1], uncertantyMTX[0,2], uncertantyMTX[1,2]))
 
-    ax2.set_ylabel('[Pixel]')
-    ax2.set_title('Internal Camera Parameters')
-    ax2.set_xticks(np.arange(4) + width / 2)
-    ax2.set_xticklabels(('Fx', 'Fy', 'X0', 'Y0'))
-    plt.draw()
+        ax2.set_ylabel('[Pixel]')
+        ax2.set_title('Internal Camera Parameters')
+        ax2.set_xticks(np.arange(4) + width / 2)
+        ax2.set_xticklabels(('Fx', 'Fy', 'X0', 'Y0'))
+        plt.draw()
     #####################################################################################
 
 
