@@ -28,3 +28,6 @@ You can play with the Canny parameters in the Settings window.
   <img src="./Recources/savedImage0.png" width="450" title="manual measuring">
   <img src="./Recources/USAF1951Target_Accuracy_Test.jpg" width="200" title="Accuracy test fo the system using an USAF1951 Target">
 </p>
+
+## Further Information
+For more in depth info you can look at my [Bachelor Thesis](./Recources/Thesis.pdf).
