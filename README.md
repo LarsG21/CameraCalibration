@@ -1,7 +1,7 @@
 # CameraCalibration
 
 ## Description
-In this Project I wanted to create a measuring system using a camera, that can be used to measure distances on a 2D Plane.\
+In this Project I wanted to create a measuring system using a camera, that can be used to measure distances on a 2D Plane. It was part of my Bachelor Thesis: "Development of an optical measuring system with integrated calibration"-.
 This can be helpful for example for PCB inspection.
 
 <p align="center">
