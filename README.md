@@ -11,7 +11,7 @@ To active this multiple steps had to be done. For example, the Camera needs to b
 For this I wrote a function that uses Zhangs method used in OpenCV. It is located in CalibrationWithUncertainty.py. 
 It can calculate the uncertainty of the calibration over multiple runs, save the result in a .pickle file and visualize the results in Matplotlib.
 
-<p float="center">
+<p align="center">
   <img src="./Recources/Reprojection_Err_without_calib-1.png" width="600" title="Error heatmap before calibration" /> 
   <img src="./Recources/Reprojection_Err_with_calib-1.png" width="600" title="Error heatmap after calibration" />
 </p>
