@@ -1,7 +1,7 @@
 # CameraCalibration
 
 ## Description
-In this Project I wanted to create a measuring system using a camera, that can be used to measure distances on a 2D Plane. It was part of my Bachelor Thesis: "Development of an optical measuring system with integrated calibration"-.
+In this Project I wanted to create a measuring system using a camera, that can be used to measure distances on a 2D Plane. It was part of my Bachelor Thesis: "Development of an optical measuring system with integrated calibration".\
 This can be helpful for example for PCB inspection.
 
 <p align="center">
@@ -12,8 +12,8 @@ For this I wrote a function that uses Zhangs method used in OpenCV. It is locate
 It can calculate the uncertainty of the calibration over multiple runs, save the result in a .pickle file and visualize the results in Matplotlib.
 
 <p float="center">
-  <img src="./Recources/Reprojection_Err_without_calib-1.png" width="450" title="Error heatmap before calibration" /> 
-  <img src="./Recources/Reprojection_Err_with_calib-1.png" width="450" title="Error heatmap after calibration" />
+  <img src="./Recources/Reprojection_Err_without_calib-1.png" width="600" title="Error heatmap before calibration" /> 
+  <img src="./Recources/Reprojection_Err_with_calib-1.png" width="600" title="Error heatmap after calibration" />
 </p>
 
 
